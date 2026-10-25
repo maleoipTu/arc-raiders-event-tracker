@@ -1,0 +1,8 @@
+node_modules/
+.pnpm-store/
+dist/
+backups/
+*.log
+ARC-Tracker-Link-Setup-*.exe
+credentials.json
+settings.json

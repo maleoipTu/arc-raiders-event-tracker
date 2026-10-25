@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#090b0a" />
+    <title>ARC Event Tracker</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="noise"></div>
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></div>
+        <div><strong>ARC</strong><small>EVENT TRACKER</small></div>
+      </div>
+
+      <nav class="nav" aria-label="Разделы">
+        <button class="nav-item active" data-view="all"><span>◫</span> Обзор</button>
+        <button class="nav-item" data-view="favorite"><span>☆</span> Избранное</button>
+        <button class="nav-item" data-view="history"><span>↺</span> Завершённые</button>
+        <button class="nav-item" data-view="player"><span>◎</span> Игрок</button>
+        <button class="nav-item" data-view="help"><span>?</span> Справка</button>
+      </nav>
+
+      <div class="sidebar-spacer"></div>
+      <div class="signal-card">
+        <div class="signal-head"><span class="pulse" id="syncPulse"></span> <span id="syncTitle">СИНХРОНИЗАЦИЯ</span></div>
+        <p id="syncText">Подключение к официальному трекеру Embark…</p>
+      </div>
+      <button class="settings-button" id="clearFavorites">Очистить избранное</button>
+    </aside>
+
+    <main class="app-shell">
+      <header class="topbar">
+        <div>
+          <div class="eyebrow" id="mainEyebrow">ОПЕРАТИВНАЯ СВОДКА <span id="todayLabel"></span></div>
+          <h1 id="mainTitle">События в ARC</h1>
+        </div>
+        <div class="top-actions">
+          <select class="region-select" id="regionSelect" aria-label="Регион сервера">
+            <option value="europe">Европа</option><option value="north-america">Северная Америка</option><option value="brazil">Бразилия</option><option value="east-asia">Восточная Азия</option><option value="oceania">Океания</option>
+          </select>
+          <label class="search"><span>⌕</span><input id="searchInput" type="search" placeholder="Найти событие или локацию" /></label>
+          <button class="primary" id="refreshEvents">↻ Обновить</button>
+        </div>
+      </header>
+
+      <div id="eventsView">
+      <section class="hero-grid">
+        <article class="next-event" id="nextEventCard"></article>
+        <article class="status-panel">
+          <div class="panel-heading"><span>Сводка</span><small>СЕГОДНЯ</small></div>
+          <div class="stats">
+            <div><strong id="statUpcoming">0</strong><span>впереди</span></div>
+            <div><strong id="statActive">0</strong><span>активно</span></div>
+            <div><strong id="statFavorite">0</strong><span>в избранном</span></div>
+          </div>
+          <div class="mini-timeline" id="miniTimeline"></div>
+        </article>
+      </section>
+
+      <section class="content-head">
+        <div>
+          <h2 id="sectionTitle">Ближайшие события</h2>
+          <p id="resultCount">0 событий</p>
+        </div>
+        <div class="filters" id="filters">
+          <button class="filter active" data-filter="all">Все</button>
+          <button class="filter" data-filter="weather">Условия</button>
+          <button class="filter" data-filter="objective">Объекты</button>
+          <button class="filter" data-filter="loot">Добыча</button>
+        </div>
+      </section>
+
+      <section class="event-list" id="eventList"></section>
+      </div>
+
+      <section class="player-view" id="playerView" hidden>
+        <div class="player-hero" id="steamProfile">
+          <div class="player-avatar placeholder">◎</div>
+          <div class="player-identity"><div class="eyebrow">ПРОФИЛЬ РЕЙДЕРА</div><h2>Steam не подключён</h2><p>Авторизация откроется на официальном сайте Steam. Пароль не передаётся приложению.</p></div>
+          <button class="steam-button" id="steamLogin">Войти через Steam</button>
+        </div>
+
+        <div class="player-section-head"><div><h2>Статистика игрока</h2><p>Steam и ARC Tracker</p></div><button class="secondary" id="playerRefresh">↻ Обновить данные</button></div>
+        <div class="player-stat-grid">
+          <article class="player-stat"><small>ВРЕМЯ В ИГРЕ</small><strong id="playerHours">—</strong><span>часов в Steam</span></article>
+          <article class="player-stat"><small>ДОСТИЖЕНИЯ</small><strong id="playerAchievements">—</strong><span>открыто</span></article>
+          <article class="player-stat"><small>УСПЕШНАЯ ЭВАКУАЦИЯ</small><strong id="playerExtraction">—</strong><span>по последним рейдам</span></article>
+          <article class="player-stat"><small>РЕЙДЫ</small><strong id="playerRounds">—</strong><span>загружено</span></article>
+          <article class="player-stat"><small>УБИЙСТВА РЕЙДЕРОВ</small><strong id="playerKills">—</strong><span>ARC Tracker</span></article>
+          <article class="player-stat"><small>УБИЙСТВА ARC</small><strong id="playerArcKills">—</strong><span>ARC Tracker</span></article>
+        </div>
+
+        <section class="analytics-section">
+          <div class="player-section-head"><div><h2>Динамика рейдов</h2><p>Последние данные ARC Tracker</p></div><span class="analytics-range" id="analyticsRange">До 50 рейдов</span></div>
+          <div class="analytics-grid">
+            <article class="analytics-card trend-card"><div class="analytics-head"><div><small>УРОН ПО РЕЙДАМ</small><strong id="damageAverage">—</strong></div><span>среднее</span></div><div class="round-bars" id="roundTrend"><div class="analytics-empty">Обновите данные игрока</div></div></article>
+            <article class="analytics-card outcome-card"><small>РЕЗУЛЬТАТЫ</small><div class="outcome-wrap"><div class="outcome-donut" id="outcomeDonut"><strong>—</strong><span>эвакуаций</span></div><div class="outcome-legend" id="outcomeLegend"></div></div></article>
+            <article class="analytics-card maps-card"><small>КАРТЫ</small><div class="map-breakdown" id="mapBreakdown"><div class="analytics-empty">Нет данных</div></div></article>
+          </div>
+        </section>
+
+        <div class="integration-grid">
+          <article class="integration-card">
+            <div class="integration-title"><span class="service-mark steam">S</span><div><h3>Steam</h3><p>Профиль, часы и достижения</p></div><span class="connection-badge" id="steamConnection">НЕ ПОДКЛЮЧЁН</span></div>
+            <label>Steam Web API key<input id="steamApiKey" type="password" autocomplete="off" placeholder="Нужен для часов и достижений" /></label>
+            <button class="link-button" data-external="steamApiKey">Получить ключ на steamcommunity.com ↗</button>
+          </article>
+          <article class="integration-card">
+            <div class="integration-title"><span class="service-mark arc">A</span><div><h3>ARC Tracker</h3><p>Рейды, урон, убийства и добыча</p></div><span class="connection-badge" id="arcConnection">НЕ ПОДКЛЮЧЁН</span></div>
+            <label>App key<input id="arcAppKey" type="password" autocomplete="off" placeholder="arc_k1_…" /></label>
+            <label>User key<input id="arcUserKey" type="password" autocomplete="off" placeholder="arc_u1_…" /></label>
+            <div class="key-links"><button class="link-button" data-external="arcDevelopers">Зарегистрировать приложение ↗</button><button class="link-button" data-external="arcSettings">Создать личный ключ ↗</button></div>
+          </article>
+        </div>
+        <div class="security-note"><span>◆</span><p><strong>Безопасное хранение.</strong> Ключи шифруются Windows DPAPI и сохраняются только на этом компьютере. Логин и пароль Steam приложение никогда не получает.</p><button class="primary" id="saveConnections">Сохранить и проверить</button></div>
+        <p class="player-message" id="playerMessage"></p>
+      </section>
+
+      <section class="help-view" id="helpView" hidden>
+        <article class="help-intro">
+          <div>
+            <div class="eyebrow">БЫСТРЫЙ СТАРТ</div>
+            <h2>Подключение без лишнего риска</h2>
+            <p>Трекер берёт расписание событий у Embark, данные Steam — через Steam Web API, а статистику рейдов — из ARC Tracker. Пароли не сохраняются.</p>
+          </div>
+          <button class="primary" data-help-target="player">Открыть экран «Игрок»</button>
+        </article>
+
+        <div class="help-steps" aria-label="Этапы подключения">
+          <article class="help-step"><span class="step-number">01</span><div><h3>Steam</h3><p>На вкладке «Игрок» нажмите «Войти через Steam». Вход идёт на официальной странице Steam OpenID.</p><small>Даёт имя, аватар и Steam ID.</small></div></article>
+          <article class="help-step"><span class="step-number">02</span><div><h3>Steam Web API key</h3><p>Получите ключ на steamcommunity.com, вставьте его в карточку Steam и нажмите «Сохранить и проверить».</p><small>Нужен для часов в игре и достижений.</small></div></article>
+          <article class="help-step"><span class="step-number">03</span><div><h3>ARC Tracker keys</h3><p>Зарегистрируйте приложение для <code>arc_k1_…</code>, затем создайте личный <code>arc_u1_…</code> с правами <strong>Profile</strong> и <strong>Rounds</strong>.</p><small>Оба ключа показываются полностью только один раз.</small></div></article>
+          <article class="help-step"><span class="step-number">04</span><div><h3>ARC Tracker Link</h3><p>Установите Link, привяжите игровой Steam-аккаунт на arctracker.io и запустите «Sync now». Без Link история рейдов будет пустой.</p><small>Даёт рейды, эвакуации, убийства, урон и счёт.</small></div></article>
+        </div>
+
+        <section class="help-panel">
+          <div class="help-panel-head"><div><div class="eyebrow">ОФИЦИАЛЬНЫЕ ССЫЛКИ</div><h2>Подключение и синхронизация</h2></div></div>
+          <div class="help-actions">
+            <button class="help-action" data-external="steamApiKey"><span>S</span><strong>Steam API key</strong><small>Часы и достижения ↗</small></button>
+            <button class="help-action" data-external="arcDevelopers"><span>A</span><strong>ARC App key</strong><small>Регистрация приложения ↗</small></button>
+            <button class="help-action" data-external="arcSettings"><span>⚙</span><strong>ARC User key</strong><small>Profile + Rounds ↗</small></button>
+            <button class="help-action featured" data-external="arcLink"><span>⇄</span><strong>ARC Tracker Link</strong><small>Импорт данных из игры ↗</small></button>
+          </div>
+        </section>
+
+        <section class="system-center">
+          <div class="help-panel-head"><div><div class="eyebrow">ПРИЛОЖЕНИЕ</div><h2>Трей, уведомления и обновления</h2></div><span class="version-chip" id="appVersion">v—</span></div>
+          <div class="system-grid">
+            <div class="system-settings">
+              <label class="setting-toggle"><input id="minimizeToTray" type="checkbox"><span><strong>Сворачивать в трей</strong><small>Крестик скрывает окно, но трекер продолжает работать.</small></span></label>
+              <label class="setting-toggle"><input id="launchAtStartup" type="checkbox"><span><strong>Запускать вместе с Windows</strong><small>Трекер стартует скрытым в системном трее.</small></span></label>
+              <label class="setting-toggle"><input id="eventNotifications" type="checkbox"><span><strong>Уведомлять о событиях</strong><small>Группирует одновременные события в одно уведомление Windows.</small></span></label>
+              <label class="compact-field">Предупреждать за<select id="notifyLeadMinutes"><option value="0">в момент старта</option><option value="5">5 минут</option><option value="10">10 минут</option><option value="15">15 минут</option><option value="30">30 минут</option></select></label>
+              <button class="primary" id="saveSystemSettings">Сохранить настройки</button>
+            </div>
+            <div class="update-card">
+              <div class="update-icon">↑</div><div><h3>Центр обновлений</h3><p id="updateStatus">Проверка не выполнялась.</p></div>
+              <details class="update-channel"><summary>Канал релизов</summary><label>HTTPS-адрес manifest.json<input id="updateManifestUrl" type="url" placeholder="https://example.com/arc-tracker/manifest.json"></label><p>Манифест: <code>{ version, url, sha256, notes }</code>. Перед сохранением установщика проверяется SHA-256.</p></details>
+              <div class="update-actions"><button class="secondary" id="checkUpdates">Проверить</button><button class="primary" id="downloadUpdate" hidden>Скачать</button><button class="secondary" id="revealUpdate" hidden>Показать файл</button></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="diagnostics-center">
+          <div class="help-panel-head"><div><div class="eyebrow">АВТОПРОВЕРКА</div><h2>Диагностический центр</h2></div><button class="primary" id="runDiagnostics">Запустить диагностику</button></div>
+          <p class="diagnostics-copy">Проверяет Embark, Steam, ARC Tracker, шифрование, трей, уведомления и канал обновлений. Секретные ключи в отчёт не попадают.</p>
+          <div class="diagnostics-list" id="diagnosticsList"><div class="diagnostics-empty">Запустите проверку, чтобы получить отчёт.</div></div>
+        </section>
+
+        <section class="help-troubleshooting">
+          <div class="help-panel-head"><div><div class="eyebrow">ДИАГНОСТИКА</div><h2>Если что-то не работает</h2></div></div>
+          <div class="faq-list">
+            <details open><summary>Статистика показывает нули</summary><p>Откройте на ARC Tracker раздел <strong>Raids</strong>. Если там «No raids yet», запустите ARC Tracker Link, обновите привязку Steam и выполните <strong>Sync now</strong>. Затем нажмите «Обновить данные» в трекере.</p></details>
+            <details><summary>Ключи приняты, но ARC Tracker не даёт данные</summary><p>Проверьте, что User key имеет оба разрешения: <strong>Profile</strong> и <strong>Rounds</strong>. Если полное значение ключа утеряно, отзовите его и создайте новый.</p></details>
+            <details><summary>Не видно часов или достижений Steam</summary><p>Добавьте Steam Web API key и убедитесь, что профиль и игровые данные Steam не скрыты настройками приватности.</p></details>
+            <details><summary>Истекло подключение к игре</summary><p>Запустите ARC Tracker Link из меню «Пуск». Если связь не обновилась, на arctracker.io откройте Settings → ARC Raiders account и снова нажмите «Link with Steam».</p></details>
+          </div>
+        </section>
+
+        <div class="help-security"><span>◆</span><div><strong>Где хранятся ключи</strong><p>Steam API key, ARC App key и ARC User key шифруются Windows DPAPI и остаются на этом компьютере. Не публикуйте их в чатах и на скриншотах.</p></div></div>
+      </section>
+    </main>
+
+    <script src="renderer.js"></script>
+  </body>
+</html>
