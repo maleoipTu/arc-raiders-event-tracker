@@ -13,7 +13,6 @@ Steam-профилем и статистикой рейдов ARC Tracker.
 [![Windows](https://img.shields.io/badge/Windows-10%20%7C%2011-d7ff38?style=for-the-badge&labelColor=111511)](https://github.com/maleoipTu/arc-raiders-event-tracker/releases/latest)
 [![Electron](https://img.shields.io/badge/Electron-39-9feaf9?style=for-the-badge&labelColor=111511)](https://www.electronjs.org/)
 
-### [⬇ Скачать ARC Event Tracker 0.4.0](https://github.com/maleoipTu/arc-raiders-event-tracker/releases/download/v0.4.0/ARC-Event-Tracker-Setup-0.4.0.exe)
 
 </div>
 
@@ -45,7 +44,7 @@ Steam-профилем и статистикой рейдов ARC Tracker.
 
 ## Установка
 
-1. Перейдите в [последний релиз](https://github.com/maleoipTu/arc-raiders-event-tracker/releases/latest).
+1. Перейдите в [последний релиз]
 2. Скачайте файл `ARC-Event-Tracker-Setup-0.4.0.exe`.
 3. Запустите установщик и выберите установку для текущего пользователя.
 
