@@ -19,6 +19,7 @@
         <button class="nav-item active" data-view="all"><span>◫</span> Обзор</button>
         <button class="nav-item" data-view="favorite"><span>☆</span> Избранное</button>
         <button class="nav-item" data-view="history"><span>↺</span> Завершённые</button>
+        <button class="nav-item" data-view="quests"><span>◇</span> Квесты</button>
         <button class="nav-item" data-view="player"><span>◎</span> Игрок</button>
         <button class="nav-item" data-view="help"><span>?</span> Справка</button>
       </nav>
@@ -119,6 +120,50 @@
         <p class="player-message" id="playerMessage"></p>
       </section>
 
+      <section class="quests-view" id="questsView" hidden>
+        <article class="quests-hero">
+          <div>
+            <div class="eyebrow">АРХИВ ЗАДАНИЙ</div>
+            <h2>Квесты ARC Raiders</h2>
+            <p>Полный каталог заданий с русскими целями, цепочками, наградами и подсказками по прохождению. Прогресс хранится только на этом компьютере.</p>
+          </div>
+          <div class="quest-progress-ring" id="questProgressRing"><strong id="questProgressPercent">0%</strong><span>выполнено</span></div>
+        </article>
+
+        <section class="quest-summary" aria-label="Прогресс квестов">
+          <div><small>ВСЕГО</small><strong id="questTotal">0</strong><span>заданий</span></div>
+          <div><small>В ПРОЦЕССЕ</small><strong id="questActive">0</strong><span>заданий</span></div>
+          <div><small>ЗАВЕРШЕНО</small><strong id="questCompleted">0</strong><span>заданий</span></div>
+          <div><small>ЦЕЛЕЙ ГОТОВО</small><strong id="questObjectivesDone">0</strong><span id="questObjectivesTotal">из 0</span></div>
+        </section>
+
+        <section class="quest-toolbar">
+          <label class="quest-search"><span>⌕</span><input id="questSearch" type="search" placeholder="Найти квест, торговца или цель" /></label>
+          <select id="questTraderFilter" aria-label="Торговец"><option value="all">Все торговцы</option></select>
+          <select id="questMapFilter" aria-label="Карта"><option value="all">Все карты</option></select>
+          <div class="quest-status-filters" id="questStatusFilters">
+            <button class="filter active" data-quest-status="all">Все</button>
+            <button class="filter" data-quest-status="active">В процессе</button>
+            <button class="filter" data-quest-status="completed">Готово</button>
+          </div>
+        </section>
+
+        <div class="quest-workspace">
+          <section class="quest-list-panel">
+            <div class="quest-list-head"><strong id="questResultCount">0 заданий</strong><small id="questDataDate">Локальная база</small></div>
+            <div class="quest-list" id="questList"></div>
+          </section>
+          <aside class="quest-detail" id="questDetail">
+            <div class="quest-detail-empty"><span>◇</span><strong>Выберите квест</strong><p>Здесь появятся цели, маршрут, награды и связанные задания.</p></div>
+          </aside>
+        </div>
+
+        <div class="quest-attribution">
+          <span>Данные: ARC Tracker и RaidTheory ARC Data Project (MIT). Игровые материалы принадлежат Embark Studios.</span>
+          <button class="link-button" data-external="questSource">Открыть источник ↗</button>
+        </div>
+      </section>
+
       <section class="help-view" id="helpView" hidden>
         <article class="help-intro">
           <div>
@@ -184,6 +229,7 @@
       </section>
     </main>
 
+    <script src="assets/data/quests.ru.js"></script>
     <script src="renderer.js"></script>
   </body>
 </html>

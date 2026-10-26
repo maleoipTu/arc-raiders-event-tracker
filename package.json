@@ -1,6 +1,6 @@
 {
   "name": "arc-raiders-event-tracker",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "private": true,
   "description": "Desktop event tracker for ARC Raiders",
   "main": "main.js",
@@ -25,6 +25,7 @@
       "index.html",
       "styles.css",
       "renderer.js",
+      "THIRD_PARTY_NOTICES.md",
       "assets/**/*"
     ],
     "win": {

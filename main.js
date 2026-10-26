@@ -396,7 +396,8 @@ async function openTrustedExternal(target) {
     steamApiKey: 'https://steamcommunity.com/dev/apikey',
     arcSettings: 'https://arctracker.io/settings',
     arcDevelopers: 'https://arctracker.io/developers/apps',
-    arcLink: 'https://arctracker.io/app#download'
+    arcLink: 'https://arctracker.io/app#download',
+    questSource: 'https://github.com/RaidTheory/arcraiders-data'
   };
   if (!allowed[target]) throw new Error('Untrusted external link');
   await shell.openExternal(allowed[target]);
