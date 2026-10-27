@@ -2,6 +2,7 @@
   "name": "arc-raiders-event-tracker",
   "version": "0.5.0",
   "private": true,
+  "license": "MIT",
   "description": "Desktop event tracker for ARC Raiders",
   "main": "main.js",
   "scripts": {
@@ -27,6 +28,9 @@
       "styles.css",
       "renderer.js",
       "THIRD_PARTY_NOTICES.md",
+      "LICENSE",
+      "CODE_SIGNING_POLICY.md",
+      "PRIVACY.md",
       "assets/**/*"
     ],
     "win": {
