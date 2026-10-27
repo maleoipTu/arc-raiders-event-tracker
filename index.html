@@ -148,6 +148,21 @@
           </div>
         </section>
 
+        <section class="quest-map-panel" aria-label="Дерево квестов">
+          <div class="quest-map-head">
+            <div><div class="eyebrow">МАРШРУТ РЕЙДЕРА</div><h2>Дерево заданий</h2><p>Отметьте квест — все обязательные задания до него завершатся автоматически.</p></div>
+            <div class="quest-display-toggle" role="group" aria-label="Вид квестов"><button class="active" data-quest-display="tree" aria-pressed="true">⑂ Дерево</button><button data-quest-display="list" aria-pressed="false">☷ Список</button></div>
+          </div>
+          <div id="questTreePanel">
+            <div class="quest-map-toolbar"><div class="quest-map-legend"><span><i class="done"></i>Пройдено</span><span><i class="ready"></i>Доступно</span><span><i></i>Впереди</span></div><div class="quest-map-controls"><button id="questZoomOut" aria-label="Уменьшить дерево">−</button><output id="questZoomLabel">85%</output><button id="questZoomIn" aria-label="Увеличить дерево">+</button><button id="questFocusSelected">К выбранному ◎</button></div></div>
+            <div class="quest-map-viewport" id="questMapViewport" tabindex="0" aria-label="Схема зависимостей: прокручивайте, чтобы перемещаться по веткам">
+              <div class="quest-map-space" id="questMapSpace"><div class="quest-map-canvas" id="questMapCanvas"></div></div>
+            </div>
+            <div class="quest-map-footer"><span id="questTreeSelection">Выберите квест на схеме</span><button class="link-button" id="questOpenSelected">К целям и подсказкам ↓</button></div>
+          </div>
+          <div class="quest-change-notice" id="questChangeNotice" hidden><span id="questChangeText" role="status"></span><button id="questUndo">Отменить</button></div>
+        </section>
+
         <div class="quest-workspace">
           <section class="quest-list-panel">
             <div class="quest-list-head"><strong id="questResultCount">0 заданий</strong><small id="questDataDate">Локальная база</small></div>
@@ -232,6 +247,7 @@
     </main>
 
     <script src="assets/data/quests.ru.js"></script>
+    <script src="quest-graph.js"></script>
     <script src="renderer.js"></script>
   </body>
 </html>

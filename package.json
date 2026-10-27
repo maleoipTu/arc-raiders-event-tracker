@@ -1,6 +1,6 @@
 {
   "name": "arc-raiders-event-tracker",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "private": true,
   "license": "MIT",
   "description": "Desktop event tracker for ARC Raiders",
@@ -11,11 +11,18 @@
     "pack": "electron-builder --dir",
     "dist": "electron-builder --win portable",
     "installer": "electron-builder --win nsis",
-    "publish": "electron-builder --win nsis --publish always"
+    "publish": "electron-builder --win nsis --publish always",
+    "android:prepare": "node scripts/build-mobile.mjs && node node_modules/@capacitor/cli/bin/capacitor sync android",
+    "android:apk": "node scripts/build-mobile.mjs && node node_modules/@capacitor/cli/bin/capacitor sync android && node scripts/build-android.mjs",
+    "android:signing": "node scripts/prepare-android-signing.mjs",
+    "android:test": "node --test tests/mobile.test.mjs",
+    "quests:test": "node --test tests/quest-graph.test.cjs"
   },
   "devDependencies": {
+    "@capacitor/cli": "^8.5.3",
     "electron": "^39.0.0",
     "electron-builder": "^26.0.12",
+    "esbuild": "^0.28.2",
     "png-to-ico": "^3.0.2"
   },
   "build": {
@@ -27,6 +34,7 @@
       "index.html",
       "styles.css",
       "renderer.js",
+      "quest-graph.js",
       "THIRD_PARTY_NOTICES.md",
       "LICENSE",
       "CODE_SIGNING_POLICY.md",
@@ -57,6 +65,11 @@
     }
   },
   "dependencies": {
+    "@capacitor/android": "^8.5.3",
+    "@capacitor/app": "^8.1.2",
+    "@capacitor/browser": "^8.0.5",
+    "@capacitor/core": "^8.5.3",
+    "@capacitor/local-notifications": "^8.3.1",
     "electron-updater": "^6.8.11"
   }
 }

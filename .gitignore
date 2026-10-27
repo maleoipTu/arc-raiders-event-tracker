@@ -6,3 +6,10 @@ backups/
 ARC-Tracker-Link-Setup-*.exe
 credentials.json
 settings.json
+mobile/www/
+.android-sdk/
+.android-tools/
+.gradle-cache/
+.android-keys/
+*.keystore
+*.jks

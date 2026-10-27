@@ -8,10 +8,12 @@
 
 [![Последний релиз](https://img.shields.io/github/v/release/maleoipTu/arc-raiders-event-tracker?style=for-the-badge&color=d7ff38&labelColor=111511)](https://github.com/maleoipTu/arc-raiders-event-tracker/releases/latest)
 [![Windows](https://img.shields.io/badge/Windows-10%20%7C%2011-d7ff38?style=for-the-badge&labelColor=111511)](https://github.com/maleoipTu/arc-raiders-event-tracker/releases/latest)
-[![Android](https://img.shields.io/badge/Android-7.0%2B%20%C2%B7%20v0.5.0-9feaf9?style=for-the-badge&labelColor=111511)](#android)
+[![Android](https://img.shields.io/badge/Android-7.0%2B%20%C2%B7%20v0.5.1-9feaf9?style=for-the-badge&labelColor=111511)](#android)
 [![Electron](https://img.shields.io/badge/Electron-39-9feaf9?style=for-the-badge&labelColor=111511)](https://www.electronjs.org/)
 
-### [⬇ Скачать последнюю версию ARC Event Tracker](https://github.com/maleoipTu/arc-raiders-event-tracker/releases/latest)
+### Скачать 0.5.1: [Windows EXE](https://github.com/maleoipTu/arc-raiders-event-tracker/releases/download/v0.5.1/ARC-Event-Tracker-Setup-0.5.1.exe) · [Android APK](https://github.com/maleoipTu/arc-raiders-event-tracker/releases/download/v0.5.1/ARC-Event-Tracker-Android-0.5.1.apk)
+
+[Все релизы и контрольные суммы](https://github.com/maleoipTu/arc-raiders-event-tracker/releases/latest)
 
 </div>
 
@@ -19,17 +21,25 @@
 
 ## Android
 
-**Есть версия для Android — v0.5.0, Android 7.0 и новее.** Это отдельное устанавливаемое приложение с интерфейсом для телефона и планшета.
+**Есть версия для Android — v0.5.1, Android 7.0 и новее.** Это отдельное устанавливаемое приложение с интерфейсом для телефона и планшета. [Скачать APK](https://github.com/maleoipTu/arc-raiders-event-tracker/releases/download/v0.5.1/ARC-Event-Tracker-Android-0.5.1.apk) · [Сборка и установка](mobile/README.md).
 
 - Живое расписание Embark, выбор региона и таймеры событий.
 - Поиск, избранное и завершённые события.
-- 123 квеста с русскими целями, подсказками и сохранением прогресса на устройстве.
+- Дерево из 123 квестов с русскими целями, подсказками и сохранением прогресса на устройстве.
 - Системные уведомления и встроенная справка.
 - Просмотр сохранённого расписания и квестов без сети.
 
 В Android-версии нет статистики игрока, входа Steam и настройки API-ключей. Расписание обновляется при запуске и каждые 15 минут, пока приложение открыто. Для продления напоминаний на следующий день открывайте трекер ежедневно.
 
 Подписанный APK v0.5.0 проверен на Samsung SM-S931B с Android 17: загрузка событий, уведомления и сохранение прогресса квестов после перезапуска работают.
+
+## Новое в 0.5.1 — дерево квестов
+
+![Дерево квестов: выделенная ветка и завершённые предшественники](docs/images/quest-tree-0.5.1.png)
+
+Квесты показаны карточками со связями и развилками. Схему можно перемещать и масштабировать, а при желании — переключиться на привычный список.
+
+Отметка квеста завершает **его и всех обязательных предшественников**, включая пути, которые сходятся в выбранном задании. Соседние ответвления и последующие задания не затрагиваются. Последнюю отметку можно отменить кнопкой **«Отменить»**; снятие отметки с отдельного квеста сохраняет прогресс предшественников.
 
 ## События под контролем
 
@@ -44,7 +54,7 @@ ARC Event Tracker помогает планировать вылазки: пок
 | **Уведомления Windows** | Напоминания перед началом события с настраиваемым интервалом. |
 | **Профиль Steam** | Имя, аватар, Steam ID, часы в игре и достижения при подключении соответствующих сервисов. |
 | **Статистика ARC Tracker** | Рейды, эвакуации, убийства, урон и любимые карты при настроенной интеграции. |
-| **Квесты и подсказки** | 123 задания, русские цели, цепочки, награды и локальный прогресс. |
+| **Дерево квестов и подсказки** | 123 задания со связями, автоматическое завершение обязательных предшественников, отмена отметки и локальный прогресс. |
 | **Обновления и автозапуск** | Фоновая работа, запуск вместе с Windows и обновления через GitHub Releases. |
 | **Диагностика** | Проверка подключений к Embark, Steam и ARC Tracker, а также работы шифрования и уведомлений. |
 
@@ -118,8 +128,8 @@ pnpm installer
 Релиз и файлы автообновления публикуются GitHub Actions при отправке тега `v*`:
 
 ```powershell
-git tag v0.5.0
-git push origin v0.5.0
+git tag v0.5.1
+git push origin v0.5.1
 ```
 
 ## Источники данных

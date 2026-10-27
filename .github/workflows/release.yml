@@ -29,7 +29,10 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build installer
+      - name: Test quest dependency graph
+        run: pnpm run quests:test
+
+      - name: Build Windows installer
         run: pnpm run installer
 
       - name: Publish release assets
@@ -40,7 +43,7 @@ jobs:
             "dist/ARC-Event-Tracker-Setup-$version.exe" `
             "dist/ARC-Event-Tracker-Setup-$version.exe.blockmap" `
             "dist/latest.yml" `
-            --title $version `
+            --title "ARC Event Tracker $version" `
             --generate-notes `
             --verify-tag
         env:

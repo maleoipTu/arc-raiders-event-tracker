@@ -1,0 +1,93 @@
+/* Mobile-only overrides: the Windows UI keeps its existing layout. */
+html, body.android-app { font-family: Roboto, 'Noto Sans', system-ui, sans-serif; }
+body.android-app { display: block; padding: var(--safe-area-inset-top,env(safe-area-inset-top)) var(--safe-area-inset-right,env(safe-area-inset-right)) 0 var(--safe-area-inset-left,env(safe-area-inset-left)); }
+.android-app .noise { display: none; }
+.android-app::before { content: ''; position: fixed; top: 0; left: 0; right: 0; height: var(--safe-area-inset-top,env(safe-area-inset-top)); background: var(--bg); z-index: 30; pointer-events: none; }
+.android-app .sidebar { position: static; width: auto; height: auto; padding: 18px 18px 0; border: 0; background: none; display: grid; grid-template-columns: auto minmax(0,1fr); gap: 14px; align-items: center; }
+.android-app .brand { padding: 0; gap: 8px; }
+.android-app .brand strong { font-size: 20px; }
+.android-app .brand small { font-size: 6px; letter-spacing: .1em; }
+.android-app .brand-mark { transform: skew(-8deg) scale(.8); width: 26px; }
+.android-app .sidebar-spacer, .android-app #clearFavorites { display: none; }
+.android-app .nav { position: fixed; bottom: 0; left: 0; right: 0; display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); padding: 8px 4px calc(8px + var(--safe-area-inset-bottom,env(safe-area-inset-bottom))); z-index: 20; background: #111411f5; border-top: 1px solid var(--line); }
+.android-app .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 52px; gap: 4px; padding: 6px 0; font-size: 10px; text-align: center; border-radius: 8px; }
+.android-app .nav-item span { font-size: 22px; width: auto; line-height: 1; }
+.android-app .nav-item.active { box-shadow: none; color: var(--acid); background: #d8f21012; }
+.android-app .nav-item.active span { color: var(--acid); }
+.android-app .signal-card { padding: 10px 12px; border-radius: 8px; }
+.android-app .signal-card p { margin-bottom: 0; font-size: 11px; }
+.android-app .signal-head { font-size: 9px; }
+.android-app .app-shell { padding: 24px 18px calc(100px + var(--safe-area-inset-bottom,env(safe-area-inset-bottom))); }
+.android-app h1 { font-family: inherit; font-size: clamp(28px,7vw,42px); line-height: 1.08; }
+.android-app h2, .android-app h3 { font-family: inherit; }
+.android-app .eyebrow { font-family: inherit; font-size: 10px; letter-spacing: .08em; }
+.android-app #mainEyebrow span { display: block; margin: 6px 0; }
+.android-app .topbar { display: block; margin-bottom: 24px; }
+.android-app .top-actions { display: grid; grid-template-columns: 1fr auto; gap: 10px; margin-top: 20px; }
+.android-app .search { min-width: 0; grid-column: 1 / -1; grid-row: 2; }
+.android-app .region-select { min-width: 0; width: 100%; }
+.android-app input, .android-app select { font-size: 16px; min-height: 44px; }
+.android-app button { touch-action: manipulation; }
+.android-app .primary, .android-app .secondary { min-height: 44px; height: auto; padding: 12px 14px; }
+.android-app .hero-grid { grid-template-columns: 1fr; margin-bottom: 24px; }
+.android-app .next-event { padding: 23px; min-height: 250px; }
+.android-app .next-event h2 { font-size: 30px; }
+.android-app .countdown strong { font-size: 42px; }
+.android-app .countdown { display: block; }
+.android-app .countdown span { display: block; margin-top: 8px; }
+.android-app .next-meta { position: static; margin-top: 20px; }
+.android-app .section-heading { flex-wrap: wrap; gap: 12px; }
+.android-app .content-head { flex-wrap: wrap; gap: 12px; }
+.android-app .filters { display: flex; flex-wrap: wrap; gap: 6px; }
+.android-app .filter { min-height: 40px; }
+.android-app .event-card { grid-template-columns: 60px 3px minmax(0,1fr) 36px; gap: 10px; padding: 16px 12px; }
+.android-app .event-main h3 { font-size: 16px; line-height: 1.35; }
+.android-app .event-main p { font-size: 12px; line-height: 1.5; }
+.android-app .event-location { display: block; grid-column: 3; }
+.android-app .event-location small { display: none; }
+.android-app .event-location strong { font-size: 12px; }
+.android-app .event-status { grid-column: 3; font-size: 10px; }
+.android-app .card-actions { grid-column: 4; grid-row: 1 / 4; align-self: start; }
+.android-app .icon-button { width: 36px; height: 44px; }
+.android-app .event-time { grid-row: 1 / 4; }
+.android-app .event-accent { grid-row: 1 / 4; }
+.android-app .quests-hero { display: flex; padding: 18px; gap: 16px; min-height: 0; }
+.android-app .quests-hero h2, .android-app .quests-hero .eyebrow { display: none; }
+.android-app .quest-progress-ring { margin-top: 0; width: 72px; height: 72px; }
+.android-app .quest-progress-ring strong { font-size: 22px; }
+.android-app .quest-progress-ring span { font-size: 7px; }
+.android-app .quest-toolbar { grid-template-columns: 1fr; }
+.android-app .quest-workspace { grid-template-columns: 1fr; }
+.android-app .quest-list { max-height: 340px; }
+.android-app .quest-detail { padding: 18px; overflow-wrap: anywhere; }
+.android-app .quest-detail-header { flex-wrap: wrap; }
+.android-app .quest-objective { min-height: 48px; }
+.android-app .quest-objective input { min-height: 22px; min-width: 22px; }
+.android-app .quest-status-filters { flex-wrap: wrap; height: auto; }
+.android-app .quest-status-filters .filter { flex: 1 1 42%; }
+.android-app .quest-summary { grid-template-columns: repeat(2,minmax(0,1fr)); }
+.android-app .quest-summary strong { font-size: 26px; }
+.android-app .quest-detail-cover { padding: 16px; min-height: 150px; }
+.android-app .quest-detail-cover>img { position: static; width: 64px; height: 64px; margin-bottom: 12px; }
+.android-app .quest-detail-cover h2 { font-size: 24px; }
+.android-app .quest-detail-body { padding: 16px 0 0; }
+.android-app .quest-description, .android-app .quest-tips li, .android-app .quest-objective span { font-size: 13px; line-height: 1.6; }
+.android-app .quest-block h3, .android-app .quest-meta-card small { font-size: 10px; }
+.android-app .quest-card-main strong { font-size: 14px; }
+.android-app .quest-card-main span, .android-app .quest-meta-card strong { font-size: 12px; }
+.android-app .quest-attribution { flex-wrap: wrap; font-size: 10px; }
+.android-app .system-grid, .android-app .diagnostics-list { grid-template-columns: 1fr; }
+.android-app .system-center, .android-app .diagnostics-center { padding: 18px; }
+.android-app .help-panel-head { flex-wrap: wrap; gap: 14px; }
+.android-app .help-panel-head h2 { font-size: 22px; }
+.android-app .diagnostic-row small { overflow-wrap: anywhere; }
+.android-app .mobile-help { padding: 22px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); }
+.android-app .mobile-help h2 { font-size: 26px; }
+.android-app .mobile-help p { font-size: 14px; line-height: 1.65; color: #bcc3b6; }
+.android-app .mobile-help p:last-child { margin-bottom: 0; }
+@media (min-width: 780px) {
+  .android-app .app-shell { max-width: 1050px; }
+  .android-app .hero-grid { grid-template-columns: 1.3fr 1fr; }
+  .android-app .quest-workspace { grid-template-columns: minmax(250px,.8fr) minmax(0,1.2fr); }
+  .android-app .quest-list { max-height: 680px; }
+}

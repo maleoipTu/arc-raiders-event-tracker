@@ -1,0 +1,16 @@
+import { randomBytes } from 'node:crypto';
+import { existsSync } from 'node:fs';
+import { mkdir, writeFile } from 'node:fs/promises';
+import { spawnSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
+const directory = new URL('../.android-keys/', import.meta.url);
+const store = new URL('arc-tracker.jks', directory);
+const config = new URL('signing.json', directory);
+if (existsSync(store) || existsSync(config)) throw new Error('Signing files already exist; they will not be overwritten.');
+await mkdir(directory, { recursive: true });
+const password = randomBytes(32).toString('hex');
+const result = spawnSync('keytool', ['-genkeypair', '-keystore', fileURLToPath(store), '-alias', 'arc-tracker', '-keyalg', 'RSA', '-keysize', '3072', '-validity', '10000', '-storepass:env', 'ARC_SIGNING_PASSWORD', '-keypass:env', 'ARC_SIGNING_PASSWORD', '-dname', 'CN=ARC Event Tracker, OU=Android, O=ARC Event Tracker'], { stdio: 'inherit', env: { ...process.env, ARC_SIGNING_PASSWORD: password } });
+if (result.error) throw result.error;
+if (result.status !== 0) process.exit(result.status || 1);
+await writeFile(config, JSON.stringify({ storePassword: password, keyAlias: 'arc-tracker' }), { mode: 0o600 });
+console.log('Release signing key created in .android-keys/. Back up this private folder; it is required for future APK updates.');

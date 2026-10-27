@@ -49,6 +49,8 @@ let steamAccount=loadSteamAccount();
 let playerLoading=false;
 let systemSettings=null;
 const questCatalog=window.ARC_QUEST_CATALOG||{quests:[],count:0};
+const questGraph=window.ARCQuestGraph.createGraph(questCatalog.quests);
+let questDisplay=localStorage.getItem('arc-quest-display-v1')||'tree',questZoom=.85,questLayout=null,lastQuestChange=null,questNeedsFocus=true;
 let questProgress=loadQuestProgress(),questQuery='',questTrader='all',questMap='all',questStatus='all',selectedQuestId=null;
 
 function loadCache(){try{return JSON.parse(localStorage.getItem(CACHE_KEY));}catch{return null;}}
@@ -73,7 +75,7 @@ function visibleEvents(){const now=new Date();return events.filter(e=>{const{end
 
 function renderHero(){const now=new Date(),relevant=events.filter(e=>timeRange(e).end>now).sort((a,b)=>new Date(a.start)-new Date(b.start));const next=relevant.find(e=>{const r=timeRange(e);return now>=r.start&&now<r.end;})||relevant[0],card=$('#nextEventCard');if(!next){card.innerHTML='<div class="card-kicker">ЭФИР ЧИСТ</div><h2>Нет данных о событиях</h2><p class="next-location">Обновите официальное расписание</p>';}else{const{start,end}=timeRange(next),live=now>=start&&now<end;card.innerHTML=`<div class="card-kicker">${live?'АКТИВНОЕ СОБЫТИЕ':'СЛЕДУЮЩИЙ СИГНАЛ'}</div><h2>${escapeHtml(next.title)}</h2><p class="next-location">${escapeHtml(next.location)} · ${categoryLabels[next.category]}</p><div class="countdown"><strong>${live?formatCountdown(end-now):formatCountdown(start-now)}</strong><span>${live?'ДО ЗАВЕРШЕНИЯ':'ДО НАЧАЛА'}</span></div><div class="next-meta"><strong>${start.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'})}</strong><small>${start.toLocaleDateString('ru-RU',{weekday:'short',day:'numeric',month:'long'})}</small></div>`;}$('#statUpcoming').textContent=events.filter(e=>new Date(e.start)>now).length;$('#statActive').textContent=events.filter(e=>{const r=timeRange(e);return now>=r.start&&now<r.end;}).length;$('#statFavorite').textContent=events.filter(e=>e.favorite&&timeRange(e).end>now).length;}
 function renderTimeline(){const now=new Date(),today=events.filter(e=>new Date(e.start).toDateString()===now.toDateString());$('#miniTimeline').innerHTML=Array.from({length:12},(_,i)=>{const hour=i*2,hot=today.some(e=>{const s=new Date(e.start).getHours();return s>=hour&&s<hour+2;});return`<span class="${hot?'hot':''}" style="height:${12+((i*17)%47)}px" data-hour="${pad(hour)}"></span>`;}).join('');}
-function escapeHtml(value=''){const div=document.createElement('div');div.textContent=value;return div.innerHTML;}
+function escapeHtml(value=''){const div=document.createElement('div');div.textContent=value;return div.innerHTML.replaceAll('"','&quot;').replaceAll("'",'&#39;');}
 function plural(n,one,few,many){const m=n%100;if(m>=11&&m<=19)return many;const d=n%10;return d===1?one:d>=2&&d<=4?few:many;}
 function renderList(){const list=visibleEvents();$('#resultCount').textContent=`${list.length} ${plural(list.length,'событие','события','событий')}`;$('#sectionTitle').textContent=activeView==='favorite'?'Избранные события':activeView==='history'?'Завершённые события':'Ближайшие события';$('#eventList').innerHTML=list.length?list.map(e=>{const{start,end}=timeRange(e),status=statusFor(e),live=new Date()>=start&&new Date()<end;return`<article class="event-card ${live?'active-now':''}"><div class="event-time"><strong>${start.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'})}</strong><small>${start.toLocaleDateString('ru-RU',{day:'numeric',month:'short'})}</small></div><div class="event-accent ${e.category}"></div><div class="event-main"><h3>${escapeHtml(e.title)}</h3><p>${escapeHtml(e.description)}</p></div><div class="event-location"><small>ЛОКАЦИЯ</small><strong>${escapeHtml(e.location)}</strong></div><div class="event-status ${status.cls}">${status.text}</div><div class="card-actions"><button class="icon-button ${e.favorite?'favorite':''}" data-action="favorite" data-name="${escapeHtml(e.originalName)}" title="Избранное">${e.favorite?'★':'☆'}</button></div></article>`;}).join(''):'<div class="empty"><strong>Сигналов не обнаружено</strong>Измените фильтр или обновите расписание.</div>';}
 function render(){renderHero();renderTimeline();renderList();}
@@ -115,10 +117,68 @@ function renderQuestSummary(){
 }
 function renderQuestList(){
   const list=visibleQuests();
-  if(!selectedQuestId||!list.some(quest=>quest.id===selectedQuestId))selectedQuestId=list[0]?.id||null;
+  if(!selectedQuestId||!list.some(quest=>quest.id===selectedQuestId)){selectedQuestId=list.find(quest=>questState(quest)!=='completed'&&quest.previousQuestIds.every(id=>questProgress[id]?.completed))?.id||list[0]?.id||null;questNeedsFocus=true;}
   $('#questResultCount').textContent=`${list.length} ${plural(list.length,'задание','задания','заданий')}`;
   $('#questList').innerHTML=list.length?list.map(quest=>{const progress=questRecord(quest.id),done=(progress.objectives||[]).filter(Boolean).length,state=questState(quest);return`<button class="quest-card ${state} ${selectedQuestId===quest.id?'selected':''}" data-quest-id="${escapeHtml(quest.id)}"><span class="quest-card-art">${escapeHtml(quest.trader.slice(0,1))}</span><span class="quest-card-main"><strong>${escapeHtml(quest.name)}</strong><span>${escapeHtml(quest.trader)} · ${escapeHtml(quest.maps.map(map=>questMapNames[map]||map).join(', ')||'Любая карта')}</span></span><span class="quest-card-progress"><strong>${state==='completed'?'ГОТОВО':`${done}/${quest.objectives.length}`}</strong><span>${quest.xp?`${quest.xp.toLocaleString('ru-RU')} XP`:'ЗАДАНИЕ'}</span></span></button>`;}).join(''):'<div class="empty"><strong>Квесты не найдены</strong>Измените запрос или фильтры.</div>';
-  renderQuestDetail();
+  renderQuestDetail();renderQuestTree(list);
+}
+function renderQuestTree(list=visibleQuests()){
+  const tree=questDisplay!=='list';
+  $('#questTreePanel').hidden=!tree;$('.quest-list-panel').hidden=tree;$('.quest-workspace').classList.toggle('tree-detail-mode',tree);
+  $$('[data-quest-display]').forEach(button=>{const active=button.dataset.questDisplay===questDisplay;button.classList.toggle('active',active);button.setAttribute('aria-pressed',String(active));});
+  if(!tree)return;
+  const matches=new Set(list.map(quest=>quest.id)),included=new Set(matches);
+  for(const id of matches)for(const parent of window.ARCQuestGraph.closure(questGraph,id))included.add(parent);
+  questLayout=window.ARCQuestGraph.layout(questGraph,included);
+  const ancestors=window.ARCQuestGraph.closure(questGraph,selectedQuestId),route=new Set([...ancestors,selectedQuestId]);
+  const descendants=window.ARCQuestGraph.closure(questGraph,selectedQuestId,'children');
+  const palette={Apollo:'#8fb9e1',Celeste:'#e6a955','Tian Wen':'#d8f246',Shani:'#b8a0d8',Lance:'#75c6ad'};
+  const connections=[];
+  for(const[id,end]of questLayout.nodes)for(const parent of questGraph.parents.get(id)){
+    const start=questLayout.nodes.get(parent);if(!start)continue;
+    const x=start.x+start.width,y=start.y+47,finish=end.y+47,bend=(x+end.x)/2;
+    const done=questProgress[parent]?.completed&&questProgress[id]?.completed;
+    connections.push(`<path class="quest-edge ${done?'completed':''} ${route.has(id)&&route.has(parent)?'on-route':''}" d="M ${x} ${y} C ${bend} ${y}, ${bend} ${finish}, ${end.x} ${finish}" marker-end="url(#questArrow${done?'Done':''})"/>`);
+  }
+  const headers=[...questLayout.layers.keys()].map(level=>`<span class="quest-map-level" style="left:${24+level*294}px">ЭТАП ${pad(level+1)}</span>`).join('');
+  const nodes=[...questLayout.nodes].map(([id,point])=>{
+    const quest=questGraph.byId.get(id),state=questState(quest),ready=questGraph.parents.get(id).every(parent=>questProgress[parent]?.completed),done=(questRecord(id).objectives||[]).filter(Boolean).length;
+    const status=state==='completed'?'ПРОЙДЕНО':state==='active'?'В ПРОЦЕССЕ':ready?'ДОСТУПНО':'ВПЕРЕДИ';
+    return `<article class="quest-node ${state} ${ready?'ready':''} ${id===selectedQuestId?'selected':''} ${ancestors.has(id)?'ancestor':''} ${descendants.has(id)?'descendant':''} ${matches.has(id)?'':'context-node'}" data-quest-node="${escapeHtml(id)}" style="left:${point.x}px;top:${point.y}px;--trader-color:${palette[quest.trader]||'#75a9a0'}"><label class="quest-node-check" title="Завершить квест и все обязательные задания до него"><input type="checkbox" data-quest-check="${escapeHtml(id)}" aria-label="Завершить квест «${escapeHtml(quest.name)}» и предыдущие" ${state==='completed'?'checked':''}><span aria-hidden="true">✓</span></label><button class="quest-node-open" data-tree-quest="${escapeHtml(id)}" aria-pressed="${id===selectedQuestId}" title="${escapeHtml(quest.name)}"><small><i></i>${escapeHtml(quest.trader)}<em>${String(questGraph.levels.get(id)+1).padStart(2,'0')}</em></small><strong>${escapeHtml(quest.name)}</strong><span class="quest-node-state">${status}<b>${state==='completed'?'✓':`${done}/${quest.objectives.length}`}</b></span></button></article>`;
+  }).join('');
+  $('#questMapCanvas').innerHTML=included.size?`<svg class="quest-map-links" width="${questLayout.width}" height="${questLayout.height}" aria-hidden="true"><defs><marker id="questArrow" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0 0L6 3L0 6" fill="#475342"/></marker><marker id="questArrowDone" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0 0L6 3L0 6" fill="#a8bd43"/></marker></defs>${connections.join('')}</svg>${headers}${nodes}`:'<div class="quest-map-empty">Квесты не найдены. Измените поиск или фильтры.</div>';
+  const selected=questGraph.byId.get(selectedQuestId),count=[...ancestors].filter(id=>!questProgress[id]?.completed).length;
+  $('#questTreeSelection').textContent=selected?`${selected.name} · ${count?`до него не пройдено: ${count}`:'предыдущие задания пройдены'}`:'Нет выбранного квеста';
+  $('#questOpenSelected').disabled=!selected;
+  applyQuestZoom();
+  if(questNeedsFocus){requestAnimationFrame(()=>focusQuestNode());questNeedsFocus=false;}
+}
+function applyQuestZoom(){
+  if(!questLayout)return;
+  const canvas=$('#questMapCanvas');canvas.style.width=`${questLayout.width}px`;canvas.style.height=`${questLayout.height}px`;canvas.style.transform=`scale(${questZoom})`;
+  $('#questMapSpace').style.width=`${questLayout.width*questZoom}px`;$('#questMapSpace').style.height=`${questLayout.height*questZoom}px`;
+  $('#questZoomLabel').textContent=`${Math.round(questZoom*100)}%`;
+  $('#questZoomOut').disabled=questZoom<=.5;$('#questZoomIn').disabled=questZoom>=1.25;
+}
+function focusQuestNode(){
+  const point=questLayout?.nodes.get(selectedQuestId),viewport=$('#questMapViewport');if(!point)return;
+  viewport.scrollLeft=(point.x+point.width/2)*questZoom-viewport.clientWidth/2;viewport.scrollTop=(point.y+47)*questZoom-viewport.clientHeight/2;
+}
+function selectTreeQuest(id){
+  if(!questGraph.byId.has(id))return;
+  if(!visibleQuests().some(quest=>quest.id===id))resetQuestFilters();
+  selectedQuestId=id;renderQuestList();
+}
+function resetQuestFilters(){questQuery='';questTrader='all';questMap='all';questStatus='all';$('#questSearch').value='';$('#questTraderFilter').value='all';$('#questMapFilter').value='all';$$('[data-quest-status]').forEach(item=>item.classList.toggle('active',item.dataset.questStatus==='all'));}
+function setQuestCompletion(id,completed){
+  if(!questGraph.byId.has(id))return;
+  const before=JSON.parse(JSON.stringify(questProgress));
+  let count=0;
+  if(completed){const result=window.ARCQuestGraph.completeThrough(questGraph,questProgress,id);questProgress=result.progress;count=result.changed.length;}
+  else questProgress=window.ARCQuestGraph.uncomplete(questProgress,id);
+  saveQuestProgress();lastQuestChange=before;
+  $('#questChangeText').textContent=completed?`Завершено: ${count} ${plural(count,'задание','задания','заданий')}. Учтены все обязательные пути до «${questGraph.byId.get(id).name}».`:`Отметка «${questGraph.byId.get(id).name}» снята. Предыдущие квесты сохранены.`;
+  $('#questChangeNotice').hidden=false;renderQuestView();
 }
 function renderQuestDetail(){
   const quest=questCatalog.quests.find(item=>item.id===selectedQuestId),detail=$('#questDetail');
@@ -140,7 +200,7 @@ function showView(view){
   const player=view==='player';
   const help=view==='help';
   const quests=view==='quests';
-  $('#eventsView').hidden=player||help||quests; $('#playerView').hidden=!player; $('#helpView').hidden=!help; $('#questsView').hidden=!quests;
+  $('#eventsView').hidden=player||help||quests; if($('#playerView'))$('#playerView').hidden=!player; $('#helpView').hidden=!help; $('#questsView').hidden=!quests;
   $('#mainTitle').textContent=player?'Статистика игрока':help?'Справка':quests?'Квесты ARC Raiders':'События в ARC';
   $('#mainEyebrow').childNodes[0].textContent=player?'ЛИЧНОЕ ДЕЛО РЕЙДЕРА ':help?'ЦЕНТР ПОДДЕРЖКИ ':quests?'АРХИВ ЗАДАНИЙ ':'ОПЕРАТИВНАЯ СВОДКА ';
   $('.top-actions').hidden=player||help||quests;
@@ -150,6 +210,7 @@ function showView(view){
 
 function renderSteamProfile(){
   const box=$('#steamProfile');
+  if(!box)return;
   if(!steamAccount){box.innerHTML='<div class="player-avatar placeholder">◎</div><div class="player-identity"><div class="eyebrow">ПРОФИЛЬ РЕЙДЕРА</div><h2>Steam не подключён</h2><p>Авторизация откроется на официальном сайте Steam. Пароль не передаётся приложению.</p></div><button class="steam-button" id="steamLogin">Войти через Steam</button>';return;}
   const profile=steamAccount.profile||{};
   box.innerHTML=`${profile.avatar?`<img class="player-avatar" src="${escapeHtml(profile.avatar)}" alt="">`:'<div class="player-avatar placeholder">◎</div>'}<div class="player-identity"><div class="eyebrow">STEAM ПОДКЛЮЧЁН</div><h2>${escapeHtml(profile.name||'Рейдер')}</h2><p>${profile.privacy==='private'?'Профиль закрыт — часы и достижения могут быть недоступны.':'Профиль подтверждён официальным Steam OpenID.'}</p><div class="player-id">STEAM ID · ${escapeHtml(steamAccount.steamId)}</div></div><button class="secondary" id="steamDisconnect">Отключить</button>`;
@@ -196,7 +257,7 @@ function renderArcCharts(rounds,summary){
   const maps=new Map();rounds.forEach(round=>maps.set(round.map,(maps.get(round.map)||0)+1));const sortedMaps=[...maps.entries()].sort((a,b)=>b[1]-a[1]).slice(0,5);const maxMap=sortedMaps[0]?.[1]||1;
   $('#mapBreakdown').innerHTML=sortedMaps.length?sortedMaps.map(([name,count])=>`<div class="map-row"><span title="${escapeHtml(name)}">${escapeHtml(name)}</span><div class="map-track"><i style="width:${Math.round(count/maxMap*100)}%"></i></div><strong>${count}</strong></div>`).join(''):'<div class="analytics-empty">Нет данных по картам</div>';
 }
-function setConnectionBadge(selector,connected){const badge=$(selector);badge.textContent=connected?'ПОДКЛЮЧЁН':'НЕ ПОДКЛЮЧЁН';badge.classList.toggle('connected',connected);}
+function setConnectionBadge(selector,connected){const badge=$(selector);if(!badge)return;badge.textContent=connected?'ПОДКЛЮЧЁН':'НЕ ПОДКЛЮЧЁН';badge.classList.toggle('connected',connected);}
 function setPlayerMessage(message,error=false){const element=$('#playerMessage');element.textContent=message;element.style.color=error?'var(--danger)':'var(--amber)';}
 async function loadSystemSettings(){
   systemSettings=await window.arcApp.getSettings();
@@ -207,6 +268,7 @@ function renderDiagnostics(result){
 }
 function renderUpdateStatus(state={}){
   const status=$('#updateStatus'),button=$('#checkUpdates'),install=$('#installUpdate'),progress=$('#updateProgress');
+  if(window.arcApp.platform==='android'&&state.phase==='android-available'){status.textContent=`Доступна Android-версия ${state.version}. Скачайте APK и подтвердите установку в Android.`;button.disabled=false;install.hidden=false;install.textContent='Скачать APK';progress.hidden=true;return;}
   const messages={idle:'Проверка не выполнялась.',checking:'Ищу новую версию…',available:`Найдена версия ${state.version||''}. Начинаю загрузку…`,downloading:`Загружаю версию ${state.version||''}: ${state.percent||0}%`,downloaded:`Версия ${state.version||''} готова к установке.`,current:`Установлена актуальная версия ${state.currentVersion||state.version||''}.`,development:'Проверка обновлений доступна в установленной версии.',error:state.error||'Не удалось проверить обновления.'};
   status.textContent=messages[state.phase]||messages.idle;button.disabled=['checking','downloading'].includes(state.phase);install.hidden=state.phase!=='downloaded';progress.hidden=state.phase!=='downloading';progress.querySelector('i').style.width=`${Math.max(0,Math.min(100,Number(state.percent)||0))}%`;
 }
@@ -221,7 +283,7 @@ $('#eventList').addEventListener('click',e=>{const b=e.target.closest('[data-act
 $('#regionSelect').addEventListener('change',e=>{region=e.target.value;localStorage.setItem(REGION_KEY,region);syncSchedule(true);});
 $('#refreshEvents').addEventListener('click',()=>syncSchedule(true));
 $('#clearFavorites').addEventListener('click',()=>{favorites.clear();localStorage.setItem(FAVORITES_KEY,'[]');events=normalizeEvents(schedule?.events||[]);render();});
-$('#playerView').addEventListener('click',async e=>{
+$('#playerView')?.addEventListener('click',async e=>{
   if(e.target.closest('#steamLogin')){setPlayerMessage('Ожидаю вход на официальной странице Steam…');try{steamAccount=await window.arcApp.loginWithSteam();localStorage.setItem(PLAYER_KEY,JSON.stringify(steamAccount));renderSteamProfile();await loadPlayerData();}catch(error){setPlayerMessage(error.message||'Вход Steam отменён.',true);}return;}
   if(e.target.closest('#steamDisconnect')){steamAccount=null;localStorage.removeItem(PLAYER_KEY);renderSteamProfile();setConnectionBadge('#steamConnection',false);$('#playerHours').textContent='—';$('#playerAchievements').textContent='—';setPlayerMessage('Steam отключён.');return;}
   const external=e.target.closest('[data-external]');if(external){await window.arcApp.openExternal(external.dataset.external);return;}
@@ -235,8 +297,23 @@ $('#questTraderFilter').addEventListener('change',e=>{questTrader=e.target.value
 $('#questMapFilter').addEventListener('change',e=>{questMap=e.target.value;renderQuestList();});
 $('#questStatusFilters').addEventListener('click',e=>{const button=e.target.closest('[data-quest-status]');if(!button)return;questStatus=button.dataset.questStatus;$$('[data-quest-status]').forEach(item=>item.classList.toggle('active',item===button));renderQuestList();});
 $('#questList').addEventListener('click',e=>{const card=e.target.closest('[data-quest-id]');if(!card)return;selectedQuestId=card.dataset.questId;renderQuestList();});
-$('#questDetail').addEventListener('change',e=>{const checkbox=e.target.closest('[data-objective-index]');if(!checkbox||!selectedQuestId)return;const progress=questRecord(selectedQuestId);progress.objectives=[...(progress.objectives||[])];progress.objectives[Number(checkbox.dataset.objectiveIndex)]=checkbox.checked;questProgress[selectedQuestId]=progress;saveQuestProgress();renderQuestView();});
-$('#questDetail').addEventListener('click',e=>{const related=e.target.closest('[data-related-quest]');if(related){selectedQuestId=related.dataset.relatedQuest;questQuery='';questTrader='all';questMap='all';questStatus='all';$('#questSearch').value='';$('#questTraderFilter').value='all';$('#questMapFilter').value='all';$$('[data-quest-status]').forEach(item=>item.classList.toggle('active',item.dataset.questStatus==='all'));renderQuestView();return;}const complete=e.target.closest('[data-quest-complete]');if(!complete||!selectedQuestId)return;const progress=questRecord(selectedQuestId);progress.completed=!progress.completed;if(progress.completed)progress.objectives=questCatalog.quests.find(quest=>quest.id===selectedQuestId).objectives.map(()=>true);questProgress[selectedQuestId]=progress;saveQuestProgress();renderQuestView();});
+$('#questDetail').addEventListener('change',e=>{const checkbox=e.target.closest('[data-objective-index]');if(!checkbox||!selectedQuestId)return;const progress=questRecord(selectedQuestId);progress.objectives=[...(progress.objectives||[])];progress.objectives[Number(checkbox.dataset.objectiveIndex)]=checkbox.checked;questProgress[selectedQuestId]=progress;lastQuestChange=null;$('#questChangeNotice').hidden=true;saveQuestProgress();renderQuestView();});
+$('#questDetail').addEventListener('click',e=>{const related=e.target.closest('[data-related-quest]');if(related){resetQuestFilters();selectedQuestId=related.dataset.relatedQuest;questNeedsFocus=true;renderQuestView();return;}const complete=e.target.closest('[data-quest-complete]');if(!complete||!selectedQuestId)return;setQuestCompletion(selectedQuestId,!questRecord(selectedQuestId).completed);});
+$('.quest-display-toggle').addEventListener('click',e=>{const button=e.target.closest('[data-quest-display]');if(!button)return;questDisplay=button.dataset.questDisplay;localStorage.setItem('arc-quest-display-v1',questDisplay);questNeedsFocus=true;renderQuestTree();});
+$('#questMapCanvas').addEventListener('click',e=>{const button=e.target.closest('[data-tree-quest]');if(button)selectTreeQuest(button.dataset.treeQuest);});
+$('#questMapCanvas').addEventListener('change',e=>{const checkbox=e.target.closest('[data-quest-check]');if(checkbox)setQuestCompletion(checkbox.dataset.questCheck,checkbox.checked);});
+$('#questUndo').addEventListener('click',()=>{if(!lastQuestChange)return;questProgress=lastQuestChange;lastQuestChange=null;saveQuestProgress();$('#questChangeNotice').hidden=true;renderQuestView();});
+$('#questOpenSelected').addEventListener('click',()=>$('#questDetail').scrollIntoView({behavior:'smooth',block:'start'}));
+$('#questFocusSelected').addEventListener('click',focusQuestNode);
+function changeQuestZoom(amount){const viewport=$('#questMapViewport'),x=(viewport.scrollLeft+viewport.clientWidth/2)/questZoom,y=(viewport.scrollTop+viewport.clientHeight/2)/questZoom;questZoom=Math.round(Math.max(.5,Math.min(1.25,questZoom+amount))*100)/100;applyQuestZoom();viewport.scrollLeft=x*questZoom-viewport.clientWidth/2;viewport.scrollTop=y*questZoom-viewport.clientHeight/2;}
+$('#questZoomOut').addEventListener('click',()=>changeQuestZoom(-.1));
+$('#questZoomIn').addEventListener('click',()=>changeQuestZoom(.1));
+let questPan=null;
+$('#questMapViewport').addEventListener('pointerdown',e=>{if(e.pointerType!=='mouse'||e.button!==0||e.target.closest('.quest-node'))return;const viewport=e.currentTarget;questPan={x:e.clientX,y:e.clientY,left:viewport.scrollLeft,top:viewport.scrollTop};viewport.setPointerCapture(e.pointerId);viewport.classList.add('panning');});
+$('#questMapViewport').addEventListener('pointermove',e=>{if(!questPan)return;e.currentTarget.scrollLeft=questPan.left+questPan.x-e.clientX;e.currentTarget.scrollTop=questPan.top+questPan.y-e.clientY;});
+function stopQuestPan(e){questPan=null;e.currentTarget.classList.remove('panning');}
+$('#questMapViewport').addEventListener('pointerup',stopQuestPan);
+$('#questMapViewport').addEventListener('pointercancel',stopQuestPan);
 $('#questsView').addEventListener('click',async e=>{const external=e.target.closest('[data-external]');if(external)await window.arcApp.openExternal(external.dataset.external);});
 $('#saveSystemSettings').addEventListener('click',async()=>{
   const button=$('#saveSystemSettings');button.disabled=true;
@@ -245,8 +322,8 @@ $('#saveSystemSettings').addEventListener('click',async()=>{
 $('#runDiagnostics').addEventListener('click',async()=>{const button=$('#runDiagnostics');button.disabled=true;button.textContent='Проверяю…';$('#diagnosticsList').innerHTML='<div class="diagnostics-empty">Выполняю безопасную проверку…</div>';try{renderDiagnostics(await window.arcApp.runDiagnostics(steamAccount?.steamId));}catch(error){$('#diagnosticsList').innerHTML=`<div class="diagnostics-empty">${escapeHtml(error.message||'Диагностика не завершена')}</div>`;}finally{button.disabled=false;button.textContent='Запустить диагностику';}});
 $('#checkUpdates').addEventListener('click',performUpdateCheck);
 $('#installUpdate').addEventListener('click',async()=>{const button=$('#installUpdate');button.disabled=true;button.textContent='Перезапускаю…';try{await window.arcApp.installUpdate();}catch(error){renderUpdateStatus({phase:'error',error:error.message});button.disabled=false;button.textContent='Установить и перезапустить';}});
-$('#saveConnections').addEventListener('click',async()=>{setPlayerMessage('Шифрую ключи и проверяю подключение…');try{await window.arcApp.saveCredentials({steamApiKey:$('#steamApiKey').value,arcAppKey:$('#arcAppKey').value,arcUserKey:$('#arcUserKey').value});$('#steamApiKey').value='';$('#arcAppKey').value='';$('#arcUserKey').value='';await loadPlayerData();}catch(error){setPlayerMessage(error.message||'Не удалось сохранить ключи.',true);}});
-$('#playerRefresh').addEventListener('click',()=>loadPlayerData());
+$('#saveConnections')?.addEventListener('click',async()=>{setPlayerMessage('Шифрую ключи и проверяю подключение…');try{await window.arcApp.saveCredentials({steamApiKey:$('#steamApiKey').value,arcAppKey:$('#arcAppKey').value,arcUserKey:$('#arcUserKey').value});$('#steamApiKey').value='';$('#arcAppKey').value='';$('#arcUserKey').value='';await loadPlayerData();}catch(error){setPlayerMessage(error.message||'Не удалось сохранить ключи.',true);}});
+$('#playerRefresh')?.addEventListener('click',()=>loadPlayerData());
 window.addEventListener('online',()=>syncSchedule());
 window.arcApp.onAppRefresh(()=>{syncSchedule(true);if(activeView==='player')loadPlayerData();});
 setInterval(()=>{renderHero();renderTimeline();renderList();},1000);setInterval(()=>syncSchedule(),SYNC_INTERVAL);

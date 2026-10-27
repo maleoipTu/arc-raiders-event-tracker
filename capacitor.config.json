@@ -1,0 +1,11 @@
+{
+  "appId": "io.github.maleoiptu.arctracker",
+  "appName": "ARC Event Tracker",
+  "webDir": "mobile/www",
+  "backgroundColor": "#090b0a",
+  "android": { "allowMixedContent": false },
+  "plugins": {
+    "SystemBars": { "style": "DARK", "insetsHandling": "css" },
+    "LocalNotifications": { "smallIcon": "ic_stat_arc", "iconColor": "#d8f246" }
+  }
+}
