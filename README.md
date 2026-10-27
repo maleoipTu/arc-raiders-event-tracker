@@ -4,10 +4,11 @@
 
 **События ARC Raiders. Без лишних вкладок.**
 
-Неофициальное приложение для Windows: расписание событий, напоминания, Steam-профиль и статистика рейдов в одном месте.
+Неофициальное приложение для Windows и Android: расписание событий ARC Raiders, напоминания и квесты. В Windows-версии также доступны Steam-профиль и статистика рейдов.
 
 [![Последний релиз](https://img.shields.io/github/v/release/maleoipTu/arc-raiders-event-tracker?style=for-the-badge&color=d7ff38&labelColor=111511)](https://github.com/maleoipTu/arc-raiders-event-tracker/releases/latest)
 [![Windows](https://img.shields.io/badge/Windows-10%20%7C%2011-d7ff38?style=for-the-badge&labelColor=111511)](https://github.com/maleoipTu/arc-raiders-event-tracker/releases/latest)
+[![Android](https://img.shields.io/badge/Android-7.0%2B%20%C2%B7%20v0.5.0-9feaf9?style=for-the-badge&labelColor=111511)](#android)
 [![Electron](https://img.shields.io/badge/Electron-39-9feaf9?style=for-the-badge&labelColor=111511)](https://www.electronjs.org/)
 
 ### [⬇ Скачать последнюю версию ARC Event Tracker](https://github.com/maleoipTu/arc-raiders-event-tracker/releases/latest)
@@ -15,6 +16,20 @@
 </div>
 
 ---
+
+## Android
+
+**Есть версия для Android — v0.5.0, Android 7.0 и новее.** Это отдельное устанавливаемое приложение с интерфейсом для телефона и планшета.
+
+- Живое расписание Embark, выбор региона и таймеры событий.
+- Поиск, избранное и завершённые события.
+- 123 квеста с русскими целями, подсказками и сохранением прогресса на устройстве.
+- Системные уведомления и встроенная справка.
+- Просмотр сохранённого расписания и квестов без сети.
+
+В Android-версии нет статистики игрока, входа Steam и настройки API-ключей. Расписание обновляется при запуске и каждые 15 минут, пока приложение открыто. Для продления напоминаний на следующий день открывайте трекер ежедневно.
+
+Подписанный APK v0.5.0 проверен на Samsung SM-S931B с Android 17: загрузка событий, уведомления и сохранение прогресса квестов после перезапуска работают.
 
 ## События под контролем
 
