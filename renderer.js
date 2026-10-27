@@ -200,16 +200,17 @@ function setConnectionBadge(selector,connected){const badge=$(selector);badge.te
 function setPlayerMessage(message,error=false){const element=$('#playerMessage');element.textContent=message;element.style.color=error?'var(--danger)':'var(--amber)';}
 async function loadSystemSettings(){
   systemSettings=await window.arcApp.getSettings();
-  $('#minimizeToTray').checked=systemSettings.minimizeToTray;$('#launchAtStartup').checked=systemSettings.launchAtStartup;$('#eventNotifications').checked=systemSettings.notifications;$('#notifyLeadMinutes').value=String(systemSettings.notifyLeadMinutes);$('#updateManifestUrl').value=systemSettings.updateManifestUrl||'';
+  $('#minimizeToTray').checked=systemSettings.minimizeToTray;$('#launchAtStartup').checked=systemSettings.launchAtStartup;$('#eventNotifications').checked=systemSettings.notifications;$('#autoUpdate').checked=systemSettings.autoUpdate;$('#notifyLeadMinutes').value=String(systemSettings.notifyLeadMinutes);
 }
 function renderDiagnostics(result){
   $('#diagnosticsList').innerHTML=result.checks.map(check=>`<article class="diagnostic-row ${check.status}"><span class="diagnostic-dot"></span><div><strong>${escapeHtml(check.label)}</strong><small>${escapeHtml(check.detail)}</small></div></article>`).join('');
 }
-async function performUpdateCheck(){
-  const button=$('#checkUpdates');button.disabled=true;$('#updateStatus').textContent='Ищу новую версию…';$('#downloadUpdate').hidden=true;$('#revealUpdate').hidden=true;
-  try{const result=await window.arcApp.checkUpdates();if(!result.configured){$('#updateStatus').textContent='Канал релизов не настроен. Укажите HTTPS-манифест.';return;}if(result.available){$('#updateStatus').textContent=`Доступна версия ${result.version}. ${result.notes||''}`;$('#downloadUpdate').hidden=false;}else $('#updateStatus').textContent=`Установлена актуальная версия ${result.currentVersion}.`;}
-  catch(error){$('#updateStatus').textContent=error.message||'Не удалось проверить обновления.';}finally{button.disabled=false;}
+function renderUpdateStatus(state={}){
+  const status=$('#updateStatus'),button=$('#checkUpdates'),install=$('#installUpdate'),progress=$('#updateProgress');
+  const messages={idle:'Проверка не выполнялась.',checking:'Ищу новую версию…',available:`Найдена версия ${state.version||''}. Начинаю загрузку…`,downloading:`Загружаю версию ${state.version||''}: ${state.percent||0}%`,downloaded:`Версия ${state.version||''} готова к установке.`,current:`Установлена актуальная версия ${state.currentVersion||state.version||''}.`,development:'Проверка обновлений доступна в установленной версии.',error:state.error||'Не удалось проверить обновления.'};
+  status.textContent=messages[state.phase]||messages.idle;button.disabled=['checking','downloading'].includes(state.phase);install.hidden=state.phase!=='downloaded';progress.hidden=state.phase!=='downloading';progress.querySelector('i').style.width=`${Math.max(0,Math.min(100,Number(state.percent)||0))}%`;
 }
+async function performUpdateCheck(){try{renderUpdateStatus(await window.arcApp.checkUpdates());}catch(error){renderUpdateStatus({phase:'error',error:error.message});}}
 
 $('#todayLabel').textContent=new Date().toLocaleDateString('ru-RU',{day:'2-digit',month:'long',year:'numeric'}).toUpperCase();$('#regionSelect').value=region;
 $('#searchInput').addEventListener('input',e=>{query=e.target.value.trim().toLowerCase();renderList();});
@@ -239,15 +240,14 @@ $('#questDetail').addEventListener('click',e=>{const related=e.target.closest('[
 $('#questsView').addEventListener('click',async e=>{const external=e.target.closest('[data-external]');if(external)await window.arcApp.openExternal(external.dataset.external);});
 $('#saveSystemSettings').addEventListener('click',async()=>{
   const button=$('#saveSystemSettings');button.disabled=true;
-  try{systemSettings=await window.arcApp.saveSettings({minimizeToTray:$('#minimizeToTray').checked,launchAtStartup:$('#launchAtStartup').checked,notifications:$('#eventNotifications').checked,notifyLeadMinutes:Number($('#notifyLeadMinutes').value),updateManifestUrl:$('#updateManifestUrl').value.trim()});button.textContent='Сохранено';await scheduleDesktopNotifications();setTimeout(()=>{button.textContent='Сохранить настройки';},1500);}catch(error){button.textContent=error.message||'Ошибка';}finally{button.disabled=false;}
+  try{systemSettings=await window.arcApp.saveSettings({minimizeToTray:$('#minimizeToTray').checked,launchAtStartup:$('#launchAtStartup').checked,notifications:$('#eventNotifications').checked,autoUpdate:$('#autoUpdate').checked,notifyLeadMinutes:Number($('#notifyLeadMinutes').value)});button.textContent='Сохранено';await scheduleDesktopNotifications();setTimeout(()=>{button.textContent='Сохранить настройки';},1500);}catch(error){button.textContent=error.message||'Ошибка';}finally{button.disabled=false;}
 });
 $('#runDiagnostics').addEventListener('click',async()=>{const button=$('#runDiagnostics');button.disabled=true;button.textContent='Проверяю…';$('#diagnosticsList').innerHTML='<div class="diagnostics-empty">Выполняю безопасную проверку…</div>';try{renderDiagnostics(await window.arcApp.runDiagnostics(steamAccount?.steamId));}catch(error){$('#diagnosticsList').innerHTML=`<div class="diagnostics-empty">${escapeHtml(error.message||'Диагностика не завершена')}</div>`;}finally{button.disabled=false;button.textContent='Запустить диагностику';}});
 $('#checkUpdates').addEventListener('click',performUpdateCheck);
-$('#downloadUpdate').addEventListener('click',async()=>{const button=$('#downloadUpdate');button.disabled=true;button.textContent='Загружаю…';try{const result=await window.arcApp.downloadUpdate();$('#updateStatus').textContent=`Версия ${result.version} скачана, SHA-256 проверен.`;button.hidden=true;$('#revealUpdate').hidden=false;}catch(error){$('#updateStatus').textContent=error.message||'Ошибка загрузки.';}finally{button.disabled=false;button.textContent='Скачать';}});
-$('#revealUpdate').addEventListener('click',()=>window.arcApp.revealUpdate());
+$('#installUpdate').addEventListener('click',async()=>{const button=$('#installUpdate');button.disabled=true;button.textContent='Перезапускаю…';try{await window.arcApp.installUpdate();}catch(error){renderUpdateStatus({phase:'error',error:error.message});button.disabled=false;button.textContent='Установить и перезапустить';}});
 $('#saveConnections').addEventListener('click',async()=>{setPlayerMessage('Шифрую ключи и проверяю подключение…');try{await window.arcApp.saveCredentials({steamApiKey:$('#steamApiKey').value,arcAppKey:$('#arcAppKey').value,arcUserKey:$('#arcUserKey').value});$('#steamApiKey').value='';$('#arcAppKey').value='';$('#arcUserKey').value='';await loadPlayerData();}catch(error){setPlayerMessage(error.message||'Не удалось сохранить ключи.',true);}});
 $('#playerRefresh').addEventListener('click',()=>loadPlayerData());
 window.addEventListener('online',()=>syncSchedule());
 window.arcApp.onAppRefresh(()=>{syncSchedule(true);if(activeView==='player')loadPlayerData();});
 setInterval(()=>{renderHero();renderTimeline();renderList();},1000);setInterval(()=>syncSchedule(),SYNC_INTERVAL);
-if(schedule){setSyncState('cached');render();scheduleDesktopNotifications();}setupQuestFilters();renderSteamProfile();window.arcApp.version().then(version=>{$('#appVersion').textContent=`v${version}`;});loadSystemSettings();window.arcApp.credentialStatus().then(state=>{setConnectionBadge('#steamConnection',Boolean(steamAccount)&&state.steamApiKey);setConnectionBadge('#arcConnection',state.arcAppKey&&state.arcUserKey);});syncSchedule();
+if(schedule){setSyncState('cached');render();scheduleDesktopNotifications();}setupQuestFilters();renderSteamProfile();window.arcApp.version().then(version=>{$('#appVersion').textContent=`v${version}`;});loadSystemSettings();window.arcApp.onUpdateStatus(renderUpdateStatus);window.arcApp.updateStatus().then(renderUpdateStatus);window.arcApp.credentialStatus().then(state=>{setConnectionBadge('#steamConnection',Boolean(steamAccount)&&state.steamApiKey);setConnectionBadge('#arcConnection',state.arcAppKey&&state.arcUserKey);});syncSchedule();

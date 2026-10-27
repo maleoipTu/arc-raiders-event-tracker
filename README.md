@@ -13,7 +13,7 @@ Steam-профилем и статистикой рейдов ARC Tracker.
 [![Windows](https://img.shields.io/badge/Windows-10%20%7C%2011-d7ff38?style=for-the-badge&labelColor=111511)](https://github.com/maleoipTu/arc-raiders-event-tracker/releases/latest)
 [![Electron](https://img.shields.io/badge/Electron-39-9feaf9?style=for-the-badge&labelColor=111511)](https://www.electronjs.org/)
 
-### [⬇ Скачать ARC Event Tracker 0.4.0](https://github.com/maleoipTu/arc-raiders-event-tracker/releases/download/v0.4.0/ARC-Event-Tracker-Setup-0.4.0.exe)
+### [⬇ Скачать последнюю версию ARC Event Tracker](https://github.com/maleoipTu/arc-raiders-event-tracker/releases/latest)
 
 </div>
 
@@ -28,7 +28,7 @@ Steam-профилем и статистикой рейдов ARC Tracker.
 | **◔** | **Уведомления Windows** | Напоминания перед началом события с настраиваемым временем предупреждения. |
 | **◎** | **Статистика игрока** | Steam-часы, достижения, эвакуации, убийства, урон и любимые карты. |
 | **◇** | **Квесты и подсказки** | 123 задания, русские цели, цепочки, награды и локальный прогресс. |
-| **↗** | **Трей и автозапуск** | Трекер работает в фоне и может стартовать вместе с Windows. |
+| **↗** | **Обновления и автозапуск** | Проверяет GitHub Releases, загружает новую версию и устанавливает её после подтверждения. |
 | **◆** | **Диагностика** | Быстрая проверка Embark, Steam, ARC Tracker, шифрования и уведомлений. |
 
 ## Интерфейс
@@ -47,7 +47,7 @@ Steam-профилем и статистикой рейдов ARC Tracker.
 ## Установка
 
 1. Перейдите в [последний релиз](https://github.com/maleoipTu/arc-raiders-event-tracker/releases/latest).
-2. Скачайте файл `ARC-Event-Tracker-Setup-0.4.0.exe`.
+2. Скачайте файл `ARC-Event-Tracker-Setup-x.y.z.exe`.
 3. Запустите установщик и выберите установку для текущего пользователя.
 
 > [!NOTE]
@@ -80,6 +80,13 @@ pnpm start
 
 ```powershell
 pnpm installer
+```
+
+Релиз и файлы автообновления публикуются GitHub Actions при отправке тега `v*`:
+
+```powershell
+git tag v0.5.0
+git push origin v0.5.0
 ```
 
 ## Источники данных

@@ -198,13 +198,15 @@
               <label class="setting-toggle"><input id="minimizeToTray" type="checkbox"><span><strong>Сворачивать в трей</strong><small>Крестик скрывает окно, но трекер продолжает работать.</small></span></label>
               <label class="setting-toggle"><input id="launchAtStartup" type="checkbox"><span><strong>Запускать вместе с Windows</strong><small>Трекер стартует скрытым в системном трее.</small></span></label>
               <label class="setting-toggle"><input id="eventNotifications" type="checkbox"><span><strong>Уведомлять о событиях</strong><small>Группирует одновременные события в одно уведомление Windows.</small></span></label>
+              <label class="setting-toggle"><input id="autoUpdate" type="checkbox"><span><strong>Автоматически проверять обновления</strong><small>Новые версии безопасно загружаются из GitHub Releases.</small></span></label>
               <label class="compact-field">Предупреждать за<select id="notifyLeadMinutes"><option value="0">в момент старта</option><option value="5">5 минут</option><option value="10">10 минут</option><option value="15">15 минут</option><option value="30">30 минут</option></select></label>
               <button class="primary" id="saveSystemSettings">Сохранить настройки</button>
             </div>
             <div class="update-card">
               <div class="update-icon">↑</div><div><h3>Центр обновлений</h3><p id="updateStatus">Проверка не выполнялась.</p></div>
-              <details class="update-channel"><summary>Канал релизов</summary><label>HTTPS-адрес manifest.json<input id="updateManifestUrl" type="url" placeholder="https://example.com/arc-tracker/manifest.json"></label><p>Манифест: <code>{ version, url, sha256, notes }</code>. Перед сохранением установщика проверяется SHA-256.</p></details>
-              <div class="update-actions"><button class="secondary" id="checkUpdates">Проверить</button><button class="primary" id="downloadUpdate" hidden>Скачать</button><button class="secondary" id="revealUpdate" hidden>Показать файл</button></div>
+              <p class="update-source">Канал: GitHub Releases · файлы проверяются по SHA-512 перед установкой.</p>
+              <div class="update-progress" id="updateProgress" hidden><i></i></div>
+              <div class="update-actions"><button class="secondary" id="checkUpdates">Проверить</button><button class="primary" id="installUpdate" hidden>Установить и перезапустить</button></div>
             </div>
           </div>
         </section>

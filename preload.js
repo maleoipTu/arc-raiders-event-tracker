@@ -14,7 +14,8 @@ contextBridge.exposeInMainWorld('arcApp', {
   scheduleNotifications: (events) => ipcRenderer.invoke('notifications:schedule', events),
   runDiagnostics: (steamId) => ipcRenderer.invoke('diagnostics:run', steamId),
   checkUpdates: () => ipcRenderer.invoke('updates:check'),
-  downloadUpdate: () => ipcRenderer.invoke('updates:download'),
-  revealUpdate: () => ipcRenderer.invoke('updates:reveal'),
+  updateStatus: () => ipcRenderer.invoke('updates:status'),
+  installUpdate: () => ipcRenderer.invoke('updates:install'),
+  onUpdateStatus: (callback) => ipcRenderer.on('updates:status', (_event, status) => callback(status)),
   onAppRefresh: (callback) => ipcRenderer.on('app:refresh', () => callback())
 });
