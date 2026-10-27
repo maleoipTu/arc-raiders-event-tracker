@@ -10,7 +10,7 @@
     "dev": "electron .",
     "pack": "electron-builder --dir",
     "dist": "electron-builder --win portable",
-    "installer": "electron-builder --win nsis",
+    "installer": "electron-builder --win nsis --publish never",
     "publish": "electron-builder --win nsis --publish always",
     "android:prepare": "node scripts/build-mobile.mjs && node node_modules/@capacitor/cli/bin/capacitor sync android",
     "android:apk": "node scripts/build-mobile.mjs && node node_modules/@capacitor/cli/bin/capacitor sync android && node scripts/build-android.mjs",

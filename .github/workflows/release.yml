@@ -1,6 +1,13 @@
 name: Release Windows app
 
 on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing release tag to build
+        required: true
+        default: v0.5.1
+        type: string
   push:
     tags:
       - "v*"
@@ -11,9 +18,13 @@ permissions:
 jobs:
   release:
     runs-on: windows-latest
+    env:
+      RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag || github.ref }}
 
       - name: Set up pnpm
         uses: pnpm/action-setup@v4
@@ -29,17 +40,23 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Verify release version
+        shell: pwsh
+        run: |
+          $version = (Get-Content package.json | ConvertFrom-Json).version
+          if ($env:RELEASE_TAG -ne "v$version") { throw 'Release tag does not match package version' }
+
       - name: Test quest dependency graph
         run: pnpm run quests:test
 
       - name: Build Windows installer
-        run: pnpm run installer
+        run: pnpm exec electron-builder --win nsis --publish never
 
       - name: Publish release assets
         shell: pwsh
         run: |
           $version = (Get-Content package.json | ConvertFrom-Json).version
-          gh release create $env:GITHUB_REF_NAME `
+          gh release create $env:RELEASE_TAG `
             "dist/ARC-Event-Tracker-Setup-$version.exe" `
             "dist/ARC-Event-Tracker-Setup-$version.exe.blockmap" `
             "dist/latest.yml" `
