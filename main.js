@@ -1,18 +1,21 @@
 const { app, BrowserWindow, ipcMain, safeStorage, shell, Tray, Menu, Notification, net } = require('electron');
+const { autoUpdater } = require('electron-updater');
 const http = require('http');
 const fs = require('fs/promises');
 const path = require('path');
 const crypto = require('crypto');
 const ARC_APP_ID = 1808500;
-const DEFAULT_SETTINGS = { minimizeToTray: true, launchAtStartup: false, notifications: true, notifyLeadMinutes: 10, updateManifestUrl: '' };
+const DEFAULT_SETTINGS = { minimizeToTray: true, launchAtStartup: false, notifications: true, notifyLeadMinutes: 10, autoUpdate: true };
+const UPDATE_INTERVAL_MS = 6 * 60 * 60 * 1000;
 
 let mainWindow;
 let tray;
 let isQuitting = false;
 let runtimeSettings = { ...DEFAULT_SETTINGS };
 let notificationTimers = [];
-let pendingUpdate = null;
-let downloadedUpdatePath = '';
+let updateTimer;
+let updateStartupTimer;
+let updateState = { phase: 'idle', currentVersion: '' };
 
 const createWindow = () => {
   const win = new BrowserWindow({
@@ -88,8 +91,8 @@ app.whenReady().then(async () => {
   ipcMain.handle('notifications:schedule', (_event, events) => scheduleEventNotifications(events));
   ipcMain.handle('diagnostics:run', (_event, steamId) => runDiagnostics(steamId));
   ipcMain.handle('updates:check', () => checkForUpdates());
-  ipcMain.handle('updates:download', () => downloadPendingUpdate());
-  ipcMain.handle('updates:reveal', () => downloadedUpdatePath ? shell.showItemInFolder(downloadedUpdatePath) : false);
+  ipcMain.handle('updates:status', () => ({ ...updateState, currentVersion: app.getVersion(), packaged: app.isPackaged }));
+  ipcMain.handle('updates:install', () => installDownloadedUpdate());
   ipcMain.handle('schedule:fetch', async (_event, region = 'europe') => {
     const response = await fetchOfficialSchedule();
     const html = await response.text();
@@ -108,6 +111,7 @@ app.whenReady().then(async () => {
   });
   createWindow();
   createTray();
+  configureAutoUpdater();
   app.on('activate', () => {
     showMainWindow();
   });
@@ -196,18 +200,20 @@ async function readAppSettings() {
   catch { return { ...DEFAULT_SETTINGS }; }
 }
 async function saveAppSettings(values = {}) {
-  const allowed = ['minimizeToTray', 'launchAtStartup', 'notifications', 'notifyLeadMinutes', 'updateManifestUrl'];
+  const allowed = ['minimizeToTray', 'launchAtStartup', 'notifications', 'notifyLeadMinutes', 'autoUpdate'];
   const next = { ...runtimeSettings };
   for (const key of allowed) if (Object.hasOwn(values, key)) next[key] = values[key];
   next.minimizeToTray = Boolean(next.minimizeToTray);
   next.launchAtStartup = Boolean(next.launchAtStartup);
   next.notifications = Boolean(next.notifications);
+  next.autoUpdate = Boolean(next.autoUpdate);
   next.notifyLeadMinutes = Math.min(60, Math.max(0, Number(next.notifyLeadMinutes) || 0));
-  next.updateManifestUrl = String(next.updateManifestUrl || '').trim();
+  delete next.updateManifestUrl;
   runtimeSettings = next;
   await fs.writeFile(settingsFile(), JSON.stringify(next, null, 2), { encoding: 'utf8', mode: 0o600 });
   applyStartupSetting();
   updateTrayMenu();
+  scheduleAutomaticUpdateChecks();
   return { ...runtimeSettings, packaged: app.isPackaged, notificationSupported: Notification.isSupported() };
 }
 function applyStartupSetting() {
@@ -243,42 +249,55 @@ function scheduleEventNotifications(input = []) {
   return { scheduled: notificationTimers.length };
 }
 
-function compareVersions(left, right) {
-  const a = String(left).split('.').map((part) => Number(part) || 0);
-  const b = String(right).split('.').map((part) => Number(part) || 0);
-  for (let index = 0; index < Math.max(a.length, b.length); index += 1) {
-    if ((a[index] || 0) !== (b[index] || 0)) return (a[index] || 0) > (b[index] || 0) ? 1 : -1;
-  }
-  return 0;
+function updateNotes(info = {}) {
+  const notes = info.releaseNotes;
+  if (Array.isArray(notes)) return notes.map((item) => item.note || '').filter(Boolean).join(' ');
+  return String(notes || '');
 }
-async function checkForUpdates() {
-  const currentVersion = app.getVersion();
-  if (!runtimeSettings.updateManifestUrl) return { configured: false, currentVersion, status: 'not-configured' };
-  const manifestUrl = new URL(runtimeSettings.updateManifestUrl);
-  if (manifestUrl.protocol !== 'https:') throw new Error('Канал обновлений должен использовать HTTPS');
-  const response = await net.fetch(manifestUrl.toString(), { cache: 'no-store' });
-  if (!response.ok) throw new Error(`Канал обновлений вернул ${response.status}`);
-  const manifest = await response.json();
-  const version = String(manifest.version || '');
-  const installerUrl = new URL(String(manifest.url || ''), manifestUrl);
-  const sha256 = String(manifest.sha256 || '').toLowerCase();
-  if (!/^\d+\.\d+\.\d+/.test(version) || installerUrl.protocol !== 'https:' || !/^[a-f0-9]{64}$/.test(sha256)) throw new Error('Манифест обновления повреждён');
-  const available = compareVersions(version, currentVersion) > 0;
-  pendingUpdate = available ? { version, url: installerUrl.toString(), sha256, notes: String(manifest.notes || '') } : null;
-  return { configured: true, currentVersion, available, version, notes: String(manifest.notes || '') };
+function updateErrorMessage(error) {
+  const message = String(error?.message || '');
+  if (/latest\.yml|404/i.test(message)) return 'Канал обновлений ещё не опубликован. Повторите проверку после выхода следующей версии.';
+  if (/net::|ENOTFOUND|ECONN|ETIMEDOUT|network/i.test(message)) return 'Не удалось связаться с GitHub. Проверьте интернет и повторите попытку.';
+  return 'Не удалось проверить обновления. Повторите попытку позже.';
 }
-async function downloadPendingUpdate() {
-  if (!pendingUpdate) throw new Error('Сначала проверьте обновления');
-  const response = await net.fetch(pendingUpdate.url, { cache: 'no-store' });
-  if (!response.ok) throw new Error(`Загрузка вернула ${response.status}`);
-  const bytes = Buffer.from(await response.arrayBuffer());
-  const actualHash = crypto.createHash('sha256').update(bytes).digest('hex');
-  if (actualHash !== pendingUpdate.sha256) throw new Error('SHA-256 установщика не совпадает');
-  const directory = path.join(app.getPath('userData'), 'updates');
-  await fs.mkdir(directory, { recursive: true });
-  downloadedUpdatePath = path.join(directory, `ARC-Event-Tracker-Setup-${pendingUpdate.version}.exe`);
-  await fs.writeFile(downloadedUpdatePath, bytes, { mode: 0o600 });
-  return { version: pendingUpdate.version, verified: true, path: downloadedUpdatePath };
+function emitUpdateState(patch) {
+  updateState = { ...updateState, ...patch, currentVersion: app.getVersion() };
+  if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send('updates:status', updateState);
+  return updateState;
+}
+function configureAutoUpdater() {
+  updateState.currentVersion = app.getVersion();
+  autoUpdater.autoDownload = true;
+  autoUpdater.autoInstallOnAppQuit = true;
+  autoUpdater.allowPrerelease = false;
+  autoUpdater.on('checking-for-update', () => emitUpdateState({ phase: 'checking', error: '' }));
+  autoUpdater.on('update-available', (info) => emitUpdateState({ phase: 'available', version: info.version, notes: updateNotes(info) }));
+  autoUpdater.on('update-not-available', (info) => emitUpdateState({ phase: 'current', version: info.version || app.getVersion(), percent: 0 }));
+  autoUpdater.on('download-progress', (progress) => emitUpdateState({ phase: 'downloading', percent: Math.round(progress.percent || 0), transferred: progress.transferred, total: progress.total }));
+  autoUpdater.on('update-downloaded', (info) => emitUpdateState({ phase: 'downloaded', version: info.version, notes: updateNotes(info), percent: 100 }));
+  autoUpdater.on('error', (error) => emitUpdateState({ phase: 'error', error: updateErrorMessage(error) }));
+  scheduleAutomaticUpdateChecks();
+}
+function scheduleAutomaticUpdateChecks() {
+  if (updateTimer) clearInterval(updateTimer);
+  if (updateStartupTimer) clearTimeout(updateStartupTimer);
+  updateTimer = null;
+  updateStartupTimer = null;
+  if (!app.isPackaged || !runtimeSettings.autoUpdate) return;
+  updateStartupTimer = setTimeout(() => checkForUpdates(true).catch(() => {}), 12_000);
+  updateTimer = setInterval(() => checkForUpdates(true).catch(() => {}), UPDATE_INTERVAL_MS);
+}
+async function checkForUpdates(silent = false) {
+  if (!app.isPackaged) return emitUpdateState({ phase: 'development', packaged: false });
+  if (!silent) emitUpdateState({ phase: 'checking', error: '' });
+  await autoUpdater.checkForUpdates();
+  return { ...updateState, packaged: true };
+}
+function installDownloadedUpdate() {
+  if (updateState.phase !== 'downloaded') throw new Error('Обновление ещё не загружено');
+  isQuitting = true;
+  setImmediate(() => autoUpdater.quitAndInstall(false, true));
+  return { installing: true, version: updateState.version };
 }
 
 async function runDiagnostics(steamId) {
@@ -301,7 +320,7 @@ async function runDiagnostics(steamId) {
     try { const arc = await fetchArcStats(); const count = arc.summary?.total || 0; add('arc-data', 'Данные ARC Tracker', count ? 'ok' : 'warning', count ? `Загружено рейдов: ${count}` : 'Ключи работают, но история рейдов пуста'); }
     catch (error) { add('arc-data', 'Данные ARC Tracker', 'error', error.message); }
   }
-  add('updates', 'Канал обновлений', runtimeSettings.updateManifestUrl ? 'ok' : 'warning', runtimeSettings.updateManifestUrl ? 'HTTPS-манифест настроен' : 'Адрес манифеста не задан');
+  add('updates', 'Обновления приложения', app.isPackaged && runtimeSettings.autoUpdate ? 'ok' : 'warning', app.isPackaged ? (runtimeSettings.autoUpdate ? 'GitHub Releases: автопроверка включена' : 'Автопроверка выключена') : 'Доступно после установки приложения');
   return { checks, durationMs: Date.now() - started, version: app.getVersion() };
 }
 
@@ -396,7 +415,8 @@ async function openTrustedExternal(target) {
     steamApiKey: 'https://steamcommunity.com/dev/apikey',
     arcSettings: 'https://arctracker.io/settings',
     arcDevelopers: 'https://arctracker.io/developers/apps',
-    arcLink: 'https://arctracker.io/app#download'
+    arcLink: 'https://arctracker.io/app#download',
+    questSource: 'https://github.com/RaidTheory/arcraiders-data'
   };
   if (!allowed[target]) throw new Error('Untrusted external link');
   await shell.openExternal(allowed[target]);

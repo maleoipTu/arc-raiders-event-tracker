@@ -1,6 +1,6 @@
 {
   "name": "arc-raiders-event-tracker",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "private": true,
   "description": "Desktop event tracker for ARC Raiders",
   "main": "main.js",
@@ -9,7 +9,8 @@
     "dev": "electron .",
     "pack": "electron-builder --dir",
     "dist": "electron-builder --win portable",
-    "installer": "electron-builder --win nsis"
+    "installer": "electron-builder --win nsis",
+    "publish": "electron-builder --win nsis --publish always"
   },
   "devDependencies": {
     "electron": "^39.0.0",
@@ -25,12 +26,21 @@
       "index.html",
       "styles.css",
       "renderer.js",
+      "THIRD_PARTY_NOTICES.md",
       "assets/**/*"
     ],
     "win": {
       "icon": "assets/app-icon.ico",
       "target": "nsis"
     },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "maleoipTu",
+        "repo": "arc-raiders-event-tracker",
+        "releaseType": "release"
+      }
+    ],
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
@@ -41,5 +51,8 @@
       "uninstallerIcon": "assets/app-icon.ico",
       "artifactName": "ARC-Event-Tracker-Setup-${version}.${ext}"
     }
+  },
+  "dependencies": {
+    "electron-updater": "^6.8.11"
   }
 }
