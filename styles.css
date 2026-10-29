@@ -1,4 +1,5 @@
 :root {
+  color-scheme: dark;
   --bg: #090b0a;
   --panel: #111411;
   --panel-2: #171a16;
@@ -11,7 +12,12 @@
   --cyan: #75a9a0;
 }
 
-* { box-sizing: border-box; }
+* { box-sizing: border-box; scrollbar-width: thin; scrollbar-color: #4b5840 #10140f; }
+*::-webkit-scrollbar { width: 10px; height: 10px; }
+*::-webkit-scrollbar-track, *::-webkit-scrollbar-corner { background: #10140f; }
+*::-webkit-scrollbar-thumb { background: #4b5840; border: 2px solid #10140f; border-radius: 8px; }
+*::-webkit-scrollbar-thumb:hover { background: #738454; }
+*::-webkit-scrollbar-button { display: none; width: 0; height: 0; }
 [hidden] { display: none !important; }
 html, body { margin: 0; min-height: 100%; background: var(--bg); color: var(--text); font-family: 'Segoe UI Variable Text', 'Segoe UI Variable', 'Segoe UI', sans-serif; -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
 body { display: grid; grid-template-columns: 248px 1fr; overflow-x: hidden; }
@@ -27,6 +33,7 @@ button { color: inherit; }
 .brand-mark span { display: block; width: 7px; background: var(--acid); }
 .brand-mark span:nth-child(1) { height: 21px; }.brand-mark span:nth-child(2) { height: 34px; }.brand-mark span:nth-child(3) { height: 27px; }
 .nav { display: grid; gap: 7px; }
+.nav-more{display:none}.more-menu{position:fixed;z-index:50;left:16px;right:16px;bottom:calc(84px + env(safe-area-inset-bottom));padding:16px;border:1px solid #57663e;background:#151c13;box-shadow:0 -10px 80px #000b;border-radius:14px;max-height:70vh;overflow:auto}.more-menu-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}.more-menu button{display:block;background:none;border:0;color:var(--text);padding:12px;text-align:left;min-height:44px;width:100%;cursor:pointer}.more-menu-head button{width:44px;text-align:center;font-size:24px}.more-menu>button:hover{background:#d8f21018;color:var(--acid)}
 .nav-item, .settings-button { width: 100%; border: 0; background: transparent; color: var(--muted); border-radius: 3px; padding: 12px 13px; text-align: left; cursor: pointer; transition: .2s; }
 .nav-item span { display: inline-block; width: 26px; color: #b8bcaf; font-size: 19px; }
 .nav-item:hover, .nav-item.active { color: var(--text); background: #1d211b; }

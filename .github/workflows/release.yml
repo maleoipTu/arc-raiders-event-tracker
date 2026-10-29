@@ -6,7 +6,7 @@ on:
       tag:
         description: Existing release tag to build
         required: true
-        default: v0.5.1
+        default: v0.6.0
         type: string
   push:
     tags:
@@ -48,6 +48,9 @@ jobs:
 
       - name: Test quest dependency graph
         run: pnpm run quests:test
+
+      - name: Test encyclopedia sources and hideout model
+        run: pnpm run game:test
 
       - name: Build Windows installer
         run: pnpm exec electron-builder --win nsis --publish never

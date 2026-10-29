@@ -10,7 +10,7 @@ android {
         applicationId "io.github.maleoiptu.arctracker"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 501
+        versionCode 600
         versionName appMetadata.version
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {

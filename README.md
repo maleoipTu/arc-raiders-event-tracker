@@ -4,14 +4,14 @@
 
 **События ARC Raiders. Без лишних вкладок.**
 
-Неофициальное приложение для Windows и Android: расписание событий ARC Raiders, напоминания и квесты. В Windows-версии также доступны Steam-профиль и статистика рейдов.
+Неофициальное приложение для Windows и Android: события ARC Raiders, интерактивные карты, квесты, энциклопедия и улучшения убежища. В Windows-версии также доступны Steam-профиль и статистика рейдов.
 
 [![Последний релиз](https://img.shields.io/github/v/release/maleoipTu/arc-raiders-event-tracker?style=for-the-badge&color=d7ff38&labelColor=111511)](https://github.com/maleoipTu/arc-raiders-event-tracker/releases/latest)
 [![Windows](https://img.shields.io/badge/Windows-10%20%7C%2011-d7ff38?style=for-the-badge&labelColor=111511)](https://github.com/maleoipTu/arc-raiders-event-tracker/releases/latest)
-[![Android](https://img.shields.io/badge/Android-7.0%2B%20%C2%B7%20v0.5.1-9feaf9?style=for-the-badge&labelColor=111511)](#android)
+[![Android](https://img.shields.io/badge/Android-7.0%2B%20%C2%B7%20v0.6.0-9feaf9?style=for-the-badge&labelColor=111511)](#android)
 [![Electron](https://img.shields.io/badge/Electron-39-9feaf9?style=for-the-badge&labelColor=111511)](https://www.electronjs.org/)
 
-### Скачать 0.5.1: [Windows EXE](https://github.com/maleoipTu/arc-raiders-event-tracker/releases/download/v0.5.1/ARC-Event-Tracker-Setup-0.5.1.exe) · [Android APK](https://github.com/maleoipTu/arc-raiders-event-tracker/releases/download/v0.5.1/ARC-Event-Tracker-Android-0.5.1.apk)
+### Скачать 0.6.0: [Windows EXE](https://github.com/maleoipTu/arc-raiders-event-tracker/releases/download/v0.6.0/ARC-Event-Tracker-Setup-0.6.0.exe) · [Android APK](https://github.com/maleoipTu/arc-raiders-event-tracker/releases/download/v0.6.0/ARC-Event-Tracker-Android-0.6.0.apk)
 
 [Все релизы и контрольные суммы](https://github.com/maleoipTu/arc-raiders-event-tracker/releases/latest)
 
@@ -21,11 +21,12 @@
 
 ## Android
 
-**Есть версия для Android — v0.5.1, Android 7.0 и новее.** Это отдельное устанавливаемое приложение с интерфейсом для телефона и планшета. [Скачать APK](https://github.com/maleoipTu/arc-raiders-event-tracker/releases/download/v0.5.1/ARC-Event-Tracker-Android-0.5.1.apk) · [Сборка и установка](mobile/README.md).
+**Есть версия для Android — v0.6.0, Android 7.0 и новее.** Это отдельное устанавливаемое приложение с интерфейсом для телефона и планшета. [Скачать APK](https://github.com/maleoipTu/arc-raiders-event-tracker/releases/download/v0.6.0/ARC-Event-Tracker-Android-0.6.0.apk) · [Сборка и установка](mobile/README.md).
 
 - Живое расписание Embark, выбор региона и таймеры событий.
 - Поиск, избранное и завершённые события.
 - Дерево из 123 квестов с русскими целями, подсказками и сохранением прогресса на устройстве.
+- Семь интерактивных карт с этажами и личными метками, энциклопедия и планировщик убежища.
 - Системные уведомления и встроенная справка.
 - Просмотр сохранённого расписания и квестов без сети.
 
@@ -33,7 +34,22 @@
 
 Подписанный APK v0.5.0 проверен на Samsung SM-S931B с Android 17: загрузка событий, уведомления и сохранение прогресса квестов после перезапуска работают.
 
-## Новое в 0.5.1 — дерево квестов
+## Новое в 0.6.0 — карты, убежище и энциклопедия
+
+Версия **0.6.0** добавляет [интерактивный атлас, убежище и энциклопедию](docs/ATLAS_AND_WIKI.md):
+7 карт и 10 слоёв, 11 007 исходных точек ARC Tracker, личные метки,
+992 предмета с рецептами, 24 типа ARC, 48 навыков и 10 станций мастерской.
+Карты и текстовая база доступны без сети; иллюстрации карточек загружаются отдельно.
+Полосы прокрутки оформлены в тёмной гамме приложения, без белой полосы.
+
+![Интерактивный атлас ARC Raiders](docs/images/maps-0.6.0.png)
+
+Укажите уровни станций и запас материалов — трекер рассчитает, сколько осталось
+собрать до следующего улучшения или до максимума. Общий склад учитывается один раз.
+
+![Планировщик улучшений убежища](docs/images/hideout-0.6.0.png)
+
+## Дерево квестов
 
 ![Дерево квестов: выделенная ветка и завершённые предшественники](docs/images/quest-tree-0.5.1.png)
 
@@ -55,6 +71,9 @@ ARC Event Tracker помогает планировать вылазки: пок
 | **Профиль Steam** | Имя, аватар, Steam ID, часы в игре и достижения при подключении соответствующих сервисов. |
 | **Статистика ARC Tracker** | Рейды, эвакуации, убийства, урон и любимые карты при настроенной интеграции. |
 | **Дерево квестов и подсказки** | 123 задания со связями, автоматическое завершение обязательных предшественников, отмена отметки и локальный прогресс. |
+| **Интерактивные карты** | 7 карт, 10 слоёв, фильтры, поиск, масштабирование и личные метки. |
+| **Энциклопедия** | 992 предмета, рецепты, переработка, 24 ARC, 48 навыков, события, проекты и торговля. |
+| **Улучшения убежища** | Уровни станций, общий склад и расчёт недостающих материалов. |
 | **Обновления и автозапуск** | Фоновая работа, запуск вместе с Windows и обновления через GitHub Releases. |
 | **Диагностика** | Проверка подключений к Embark, Steam и ARC Tracker, а также работы шифрования и уведомлений. |
 
@@ -128,8 +147,8 @@ pnpm installer
 Релиз и файлы автообновления публикуются GitHub Actions при отправке тега `v*`:
 
 ```powershell
-git tag v0.5.1
-git push origin v0.5.1
+git tag v0.6.0
+git push origin v0.6.0
 ```
 
 ## Источники данных

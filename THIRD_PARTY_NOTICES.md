@@ -9,6 +9,16 @@ Data Project:
 - https://arctracker.io/ru/quests
 - https://github.com/RaidTheory/arcraiders-data
 
+The encyclopedia, hideout requirements, map metadata and map pins in
+`assets/data/game.ru.json`, `assets/data/map-*.json`, and map layers in
+`assets/maps/` use public game-data snapshots from ARC Tracker. The catalog
+records source URLs, source generation time, and map game versions. Recipes,
+recycling, research and other item relationships come from ARC Tracker's
+public client datasets. Their contents may change after game updates.
+Map imagery and game text remain the property of Embark Studios and its
+licensors. The license below covers RaidTheory's data project; it does not
+relicense third-party artwork or articles from other wikis.
+
 MIT License
 
 Copyright (c) 2025 RaidTheory

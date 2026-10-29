@@ -1,6 +1,6 @@
 # Privacy policy
 
-Last updated: 27 October 2026.
+Last updated: 29 October 2026.
 
 ARC Event Tracker is an unofficial community application maintained by
 [maleoipTu](https://github.com/maleoipTu). The application has no developer-operated
@@ -19,7 +19,7 @@ install it when the application exits. Android checks for APK releases and opens
 a download in the browser only when the user chooses it; Android confirms installation.
 Update checks can be disabled in the application's Help settings.
 
-Opening quest details may load illustrative images from **cdn.arctracker.io**.
+Opening quests or encyclopedia cards may load illustrative images from **cdn.arctracker.io**.
 The quest catalog is bundled with the application; quest completion flags are
 not uploaded. Like ordinary HTTPS requests, these requests expose the device's
 public IP address and normal connection/request metadata to the destination.
@@ -45,7 +45,11 @@ in the user's browser when selected.
 ## Local data and system integration
 
 The app stores schedule cache, selected region, event favorites and quest
-progress in its local application storage. Windows also stores an optional
+progress in its local application storage.
+Map layers, map pins, and the encyclopedia text catalog are bundled locally.
+Personal map markers, chosen floors, hideout levels and manually entered material
+counts are stored only on the device and are not uploaded or read from the game.
+Windows also stores an optional
 Steam profile/SteamID and app settings. Saved API keys are encrypted with
 Electron safeStorage using the Windows platform's credential protection and
 remain in the Windows user profile. Android does not store those API keys.

@@ -1,4 +1,4 @@
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, writeFile, readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -18,7 +18,7 @@ function readFlightPayload(html) {
       // Other Next.js frames are not part of the quest payload.
     }
   }
-  return chunks.join('\n');
+  return chunks.join('');
 }
 
 function readJsonObject(source, marker) {
@@ -67,12 +67,13 @@ function cleanItems(items) {
   }));
 }
 
-const response = await fetch(SOURCE_URL, {
+const inputIndex=process.argv.indexOf('--from-file');
+const response = inputIndex>=0 ? null : await fetch(SOURCE_URL, {
   headers: { 'user-agent': 'ARC-Event-Tracker quest catalog updater' },
 });
-if (!response.ok) throw new Error(`ARC Tracker returned ${response.status}`);
+if (response && !response.ok) throw new Error(`ARC Tracker returned ${response.status}`);
 
-const html = await response.text();
+const html = inputIndex>=0 ? await readFile(process.argv[inputIndex+1],'utf8') : await response.text();
 const flight = readFlightPayload(html);
 const catalog = readJsonObject(flight, '"catalog":');
 const syncedAt = new Date().toISOString();

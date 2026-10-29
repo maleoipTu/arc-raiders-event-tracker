@@ -6,6 +6,8 @@
     <meta name="theme-color" content="#090b0a" />
     <title>ARC Event Tracker</title>
     <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="map-ui.css" />
+    <link rel="stylesheet" href="book-ui.css" />
   </head>
   <body>
     <div class="noise"></div>
@@ -20,9 +22,17 @@
         <button class="nav-item" data-view="favorite"><span>☆</span> Избранное</button>
         <button class="nav-item" data-view="history"><span>↺</span> Завершённые</button>
         <button class="nav-item" data-view="quests"><span>◇</span> Квесты</button>
+        <button class="nav-item" data-view="maps"><span>⌖</span> Карты</button>
+        <button class="nav-item" data-view="hideout"><span>⌂</span> Убежище</button>
+        <button class="nav-item" data-view="wiki"><span>▤</span> Энциклопедия</button>
         <button class="nav-item" data-view="player"><span>◎</span> Игрок</button>
         <button class="nav-item" data-view="help"><span>?</span> Справка</button>
       </nav>
+      <button class="nav-more" id="navMore" aria-expanded="false" aria-controls="moreMenu"><span>•••</span>Ещё</button>
+      <div class="more-menu" id="moreMenu" hidden role="dialog" aria-label="Другие разделы">
+        <div class="more-menu-head"><strong>Другие разделы</strong><button id="closeMore" aria-label="Закрыть меню">×</button></div>
+        <button data-more-view="wiki">▤ Энциклопедия</button><button data-more-view="favorite">☆ Избранное</button><button data-more-view="history">↺ Завершённые события</button><button data-more-view="help">? Справка</button>
+      </div>
 
       <div class="sidebar-spacer"></div>
       <div class="signal-card">
@@ -179,6 +189,10 @@
         </div>
       </section>
 
+      <section id="mapsView" hidden aria-label="Интерактивные карты"></section>
+      <section id="hideoutView" hidden aria-label="Улучшения убежища"></section>
+      <section id="wikiView" hidden aria-label="Энциклопедия ARC Raiders"></section>
+
       <section class="help-view" id="helpView" hidden>
         <article class="help-intro">
           <div>
@@ -248,6 +262,9 @@
 
     <script src="assets/data/quests.ru.js"></script>
     <script src="quest-graph.js"></script>
+    <script src="game-model.js"></script>
+    <script src="map-ui.js"></script>
+    <script src="book-ui.js"></script>
     <script src="renderer.js"></script>
   </body>
 </html>

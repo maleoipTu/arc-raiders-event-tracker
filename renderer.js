@@ -91,7 +91,20 @@ function visibleQuests(){
     return haystack.includes(questQuery);
   });
 }
-function formatItem(item){const name=item.id.replaceAll('_',' ').replace(/\b\w/g,letter=>letter.toUpperCase());return `${item.quantity}× ${name}`;}
+let gameCatalog=null,gamePromise=null;
+function formatItem(item){const name=gameCatalog?.items.find(value=>value.id===item.id)?.name||item.id.replaceAll('_',' ').replace(/\b\w/g,letter=>letter.toUpperCase());return `${item.quantity}× ${name}`;}
+async function ensureGameCatalog(){
+  if(!gamePromise)gamePromise=fetch('assets/data/game.ru.json').then(response=>{if(!response.ok)throw Error('База игры не найдена');return response.json();}).then(catalog=>{
+    gameCatalog=catalog;
+    const options={catalog,model:window.ARCGameModel,navigate:activateView,openQuest:openCatalogQuest,openMap:id=>activateView('maps',{id}),openSource:url=>window.arcApp.openExternal({catalogUrl:url})};
+    window.ARCMaps.init(options);window.ARCBook.init(options);return catalog;
+  }).catch(error=>{gamePromise=null;throw error;});
+  return gamePromise;
+}
+function openCatalogQuest(id){
+  if(!questGraph.byId.has(id)){activateView('wiki',{kind:'quest',id});return;}
+  resetQuestFilters();selectedQuestId=id;questNeedsFocus=true;activateView('quests');
+}
 function questImageUrl(url){try{const parsed=new URL(url);return parsed.protocol==='https:'&&parsed.hostname==='cdn.arctracker.io'?url:'';}catch{return '';}}
 function questTips(quest){
   const tips=[];
@@ -180,13 +193,21 @@ function setQuestCompletion(id,completed){
   $('#questChangeText').textContent=completed?`Завершено: ${count} ${plural(count,'задание','задания','заданий')}. Учтены все обязательные пути до «${questGraph.byId.get(id).name}».`:`Отметка «${questGraph.byId.get(id).name}» снята. Предыдущие квесты сохранены.`;
   $('#questChangeNotice').hidden=false;renderQuestView();
 }
-function renderQuestDetail(){
+function renderQuestDetailBase(){
   const quest=questCatalog.quests.find(item=>item.id===selectedQuestId),detail=$('#questDetail');
   if(!quest){detail.innerHTML='<div class="quest-detail-empty"><span>◇</span><strong>Выберите квест</strong><p>Здесь появятся цели, маршрут, награды и связанные задания.</p></div>';return;}
   const progress=questRecord(quest.id),state=questState(quest),previous=quest.previousQuestIds.map(id=>questCatalog.quests.find(item=>item.id===id)).filter(Boolean),next=quest.nextQuestIds.map(id=>questCatalog.quests.find(item=>item.id===id)).filter(Boolean),image=questImageUrl(quest.imageUrl);
   const objectives=quest.objectives.map((objective,index)=>`<label class="quest-objective"><input type="checkbox" data-objective-index="${index}" ${progress.objectives?.[index]?'checked':''}><span>${escapeHtml(objective.text)} ${objective.optional?'<em>· НЕОБЯЗАТЕЛЬНО</em>':''}</span></label>`).join('')||'<div class="empty">Для этого задания нет отдельных целей.</div>';
   const meta=[quest.maps.length?['КАРТА',quest.maps.map(map=>questMapNames[map]||map).join(', ')]:null,quest.xp?['ОПЫТ',`${quest.xp.toLocaleString('ru-RU')} XP`]:null,quest.requiredItems.length?['НУЖНО ПРИНЕСТИ',quest.requiredItems.map(formatItem).join(' · ')]:null,quest.rewardItems.length?['НАГРАДЫ',quest.rewardItems.map(formatItem).join(' · ')]:null].filter(Boolean);
   detail.innerHTML=`<div class="quest-detail-cover">${image?`<img src="${escapeHtml(image)}" alt="" loading="lazy">`:''}<div class="eyebrow">${escapeHtml(quest.trader)} · ${quest.oneRaid?'ОДИН РЕЙД':'ЗАДАНИЕ'}</div><h2>${escapeHtml(quest.name)}</h2><p>${escapeHtml(quest.nameEn)}</p></div><div class="quest-detail-body"><p class="quest-description">${escapeHtml(quest.description)}</p><section class="quest-block"><h3>ЦЕЛИ · ${quest.ordered?'ПО ПОРЯДКУ':'В ЛЮБОМ ПОРЯДКЕ'}</h3><div class="quest-objectives">${objectives}</div></section><section class="quest-block"><h3>КАК ВЫПОЛНИТЬ</h3><ul class="quest-tips">${questTips(quest).map(tip=>`<li>${escapeHtml(tip)}</li>`).join('')}</ul></section>${meta.length?`<section class="quest-block"><h3>СВОДКА</h3><div class="quest-meta-grid">${meta.map(([label,value])=>`<div class="quest-meta-card"><small>${label}</small><strong>${escapeHtml(value)}</strong></div>`).join('')}</div></section>`:''}${previous.length||next.length?`<section class="quest-block"><h3>ЦЕПОЧКА ЗАДАНИЙ</h3><div class="quest-chain">${previous.map(item=>`<button data-related-quest="${escapeHtml(item.id)}">← ${escapeHtml(item.name)}</button>`).join('')}${next.map(item=>`<button data-related-quest="${escapeHtml(item.id)}">${escapeHtml(item.name)} →</button>`).join('')}</div></section>`:''}<button class="primary quest-complete ${state==='completed'?'done':''}" data-quest-complete>${state==='completed'?'✓ Задание завершено':'Отметить задание выполненным'}</button></div>`;
+}
+function renderQuestDetail(){
+  renderQuestDetailBase();if(!gameCatalog||!selectedQuestId)return;
+  const quest=questGraph.byId.get(selectedQuestId),body=$('#questDetail .quest-detail-body');if(!quest||!body)return;
+  const ids=[...new Set([...quest.requiredItems,...quest.rewardItems].map(item=>item.id))];
+  const aliases={dam_battlegrounds:'dam-battleground',the_spaceport:'the-spaceport',buried_city:'buried-city',the_blue_gate:'blue-gate',stella_montis:'stella-montis',stella_montis_upper:'stella-montis',stella_montis_lower:'stella-montis',riven_tides:'riven-tides',pendola_pass:'pendola-pass'};
+  const maps=[...new Set(quest.maps.map(id=>aliases[id]||id))].map(id=>gameCatalog.maps.find(map=>map.id===id)).filter(Boolean);
+  body.insertAdjacentHTML('beforeend',`<section class="quest-block"><h3>КАРТЫ И ЭНЦИКЛОПЕДИЯ</h3><div class="quest-chain">${maps.map(map=>`<button data-quest-map="${escapeHtml(map.id)}">⌖ ${escapeHtml(map.name)}</button>`).join('')}${ids.map(id=>`<button data-quest-item="${escapeHtml(id)}">▤ ${escapeHtml(gameCatalog.items.find(item=>item.id===id)?.name||id)}</button>`).join('')}<button data-quest-wiki="${escapeHtml(quest.id)}">Карточка задания →</button></div></section>`);
 }
 function renderQuestView(){renderQuestSummary();renderQuestList();}
 function setupQuestFilters(){
@@ -196,16 +217,20 @@ function setupQuestFilters(){
   const date=questCatalog.syncedAt?new Date(questCatalog.syncedAt).toLocaleDateString('ru-RU',{day:'2-digit',month:'short',year:'numeric'}):'локальная база';$('#questDataDate').textContent=`Обновлено ${date}`;
 }
 
-function showView(view){
+function showView(view,intent){
   const player=view==='player';
   const help=view==='help';
   const quests=view==='quests';
-  $('#eventsView').hidden=player||help||quests; if($('#playerView'))$('#playerView').hidden=!player; $('#helpView').hidden=!help; $('#questsView').hidden=!quests;
-  $('#mainTitle').textContent=player?'Статистика игрока':help?'Справка':quests?'Квесты ARC Raiders':'События в ARC';
-  $('#mainEyebrow').childNodes[0].textContent=player?'ЛИЧНОЕ ДЕЛО РЕЙДЕРА ':help?'ЦЕНТР ПОДДЕРЖКИ ':quests?'АРХИВ ЗАДАНИЙ ':'ОПЕРАТИВНАЯ СВОДКА ';
-  $('.top-actions').hidden=player||help||quests;
+  const journal=['maps','hideout','wiki'].includes(view);
+  $('#eventsView').hidden=player||help||quests||journal; if($('#playerView'))$('#playerView').hidden=!player; $('#helpView').hidden=!help; $('#questsView').hidden=!quests;
+  for(const name of ['maps','hideout','wiki'])$(`#${name}View`).hidden=view!==name;
+  $('#mainTitle').textContent=({maps:'Карты ARC Raiders',hideout:'Убежище',wiki:'Энциклопедия'})[view]|| (player?'Статистика игрока':help?'Справка':quests?'Квесты ARC Raiders':'События в ARC');
+  $('#mainEyebrow').childNodes[0].textContent=({maps:'АТЛАС ПОВЕРХНОСТИ ',hideout:'МАСТЕРСКАЯ РЕЙДЕРА ',wiki:'БАЗА ЗНАНИЙ '})[view]||(player?'ЛИЧНОЕ ДЕЛО РЕЙДЕРА ':help?'ЦЕНТР ПОДДЕРЖКИ ':quests?'АРХИВ ЗАДАНИЙ ':'ОПЕРАТИВНАЯ СВОДКА ');
+  $('.top-actions').hidden=player||help||quests||journal;
   if(player){renderSteamProfile();loadPlayerData();}
   if(quests)renderQuestView();
+  if(journal){const panel=$(`#${view}View`);if(!gameCatalog)panel.innerHTML='<div class="empty">Загружаю локальную базу игры…</div>';ensureGameCatalog().then(()=>{if(activeView!==view)return;if(view==='maps')window.ARCMaps.show(intent);else window.ARCBook.show(view,intent);}).catch(error=>{panel.innerHTML=`<div class="empty"><strong>База не загрузилась</strong>${escapeHtml(error.message)}<button class="secondary" data-retry-journal="${view}">Повторить</button></div>`;});}
+  if(quests&&!gameCatalog)ensureGameCatalog().then(()=>{if(activeView==='quests')renderQuestView();}).catch(()=>{});
 }
 
 function renderSteamProfile(){
@@ -277,7 +302,15 @@ async function performUpdateCheck(){try{renderUpdateStatus(await window.arcApp.c
 $('#todayLabel').textContent=new Date().toLocaleDateString('ru-RU',{day:'2-digit',month:'long',year:'numeric'}).toUpperCase();$('#regionSelect').value=region;
 $('#searchInput').addEventListener('input',e=>{query=e.target.value.trim().toLowerCase();renderList();});
 $('#filters').addEventListener('click',e=>{const b=e.target.closest('[data-filter]');if(!b)return;activeFilter=b.dataset.filter;$$('.filter').forEach(x=>x.classList.toggle('active',x===b));renderList();});
-function activateView(view){activeView=view;$$('.nav-item').forEach(x=>x.classList.toggle('active',x.dataset.view===view));showView(view);if(!['player','help','quests'].includes(view))renderList();}
+function activateView(view,intent){if(view!==activeView)window.scrollTo({top:0,behavior:'instant'});activeView=view;$$('.nav-item').forEach(x=>x.classList.toggle('active',x.dataset.view===view));$('#navMore').classList.toggle('active',['wiki','favorite','history','help'].includes(view));closeMoreMenu();showView(view,intent);if(!['player','help','quests','maps','hideout','wiki'].includes(view))renderList();}
+function closeMoreMenu(){$('#moreMenu').hidden=true;$('#navMore').setAttribute('aria-expanded','false');}
+$('#navMore').addEventListener('click',()=>{const menu=$('#moreMenu');menu.hidden=!menu.hidden;$('#navMore').setAttribute('aria-expanded',String(!menu.hidden));if(!menu.hidden)menu.querySelector('[data-more-view]').focus();});
+$('#closeMore').addEventListener('click',()=>{closeMoreMenu();$('#navMore').focus();});
+$('#moreMenu').addEventListener('click',event=>{const button=event.target.closest('[data-more-view]');if(button)activateView(button.dataset.moreView);});
+document.addEventListener('click',event=>{if(!$('#moreMenu').hidden&&!event.target.closest('#moreMenu,#navMore'))closeMoreMenu();const retry=event.target.closest('[data-retry-journal]');if(retry)activateView(retry.dataset.retryJournal);});
+document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!$('#moreMenu').hidden){closeMoreMenu();$('#navMore').focus();}});
+document.addEventListener('click',event=>{const item=event.target.closest('[data-quest-item]');if(item)activateView('wiki',{kind:'item',id:item.dataset.questItem});const map=event.target.closest('[data-quest-map]');if(map)activateView('maps',{id:map.dataset.questMap,questId:selectedQuestId});const quest=event.target.closest('[data-quest-wiki]');if(quest)activateView('wiki',{kind:'quest',id:quest.dataset.questWiki});});
+window.addEventListener('resize',()=>window.ARCMaps.resize());
 $('.nav').addEventListener('click',e=>{const b=e.target.closest('[data-view]');if(!b)return;activateView(b.dataset.view);});
 $('#eventList').addEventListener('click',e=>{const b=e.target.closest('[data-action="favorite"]');if(!b)return;favorites.has(b.dataset.name)?favorites.delete(b.dataset.name):favorites.add(b.dataset.name);localStorage.setItem(FAVORITES_KEY,JSON.stringify([...favorites]));events=normalizeEvents(schedule?.events||[]);render();});
 $('#regionSelect').addEventListener('change',e=>{region=e.target.value;localStorage.setItem(REGION_KEY,region);syncSchedule(true);});

@@ -1,6 +1,6 @@
 {
   "name": "arc-raiders-event-tracker",
-  "version": "0.5.1",
+  "version": "0.6.0",
   "private": true,
   "license": "MIT",
   "description": "Desktop event tracker for ARC Raiders",
@@ -16,7 +16,9 @@
     "android:apk": "node scripts/build-mobile.mjs && node node_modules/@capacitor/cli/bin/capacitor sync android && node scripts/build-android.mjs",
     "android:signing": "node scripts/prepare-android-signing.mjs",
     "android:test": "node --test tests/mobile.test.mjs",
-    "quests:test": "node --test tests/quest-graph.test.cjs"
+    "quests:test": "node --test tests/quest-graph.test.cjs",
+    "game:test": "node --test tests/game-model.test.cjs tests/arc-sources.test.mjs",
+    "game:sync": "node scripts/sync-game.mjs --refresh"
   },
   "devDependencies": {
     "@capacitor/cli": "^8.5.3",
@@ -35,6 +37,11 @@
       "styles.css",
       "renderer.js",
       "quest-graph.js",
+      "game-model.js",
+      "map-ui.js",
+      "map-ui.css",
+      "book-ui.js",
+      "book-ui.css",
       "THIRD_PARTY_NOTICES.md",
       "LICENSE",
       "CODE_SIGNING_POLICY.md",

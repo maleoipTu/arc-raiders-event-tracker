@@ -2,7 +2,7 @@ window.ARC_QUEST_CATALOG = {
   "source": "ARC Tracker / RaidTheory ARC Data Project",
   "sourceUrl": "https://arctracker.io/ru/quests",
   "attributionUrl": "https://github.com/RaidTheory/arcraiders-data",
-  "syncedAt": "2026-10-26T17:27:04.155Z",
+  "syncedAt": "2026-10-28T21:21:28.741Z",
   "count": 123,
   "quests": [
     {
@@ -344,7 +344,7 @@ window.ARC_QUEST_CATALOG = {
           "optional": false
         },
         {
-          "text": "Найдите прототип гондолы в высохшем русле реки.",
+          "text": "Найдите прототип гондолы в высохшем русле реки",
           "amount": null,
           "optional": false
         },
@@ -526,7 +526,7 @@ window.ARC_QUEST_CATALOG = {
       "nextQuestIds": [],
       "requiredItems": [
         {
-          "id": "wires",
+          "id": "emperor_gateway_conduit",
           "quantity": 1
         },
         {
@@ -977,7 +977,7 @@ window.ARC_QUEST_CATALOG = {
           "optional": false
         },
         {
-          "text": "Изучите открытый участок на ноге «Императора» неподалеку от грузовой станции.",
+          "text": "Изучите открытый участок на ноге «Императора» неподалеку от железнодорожного узла",
           "amount": null,
           "optional": false
         },
@@ -2605,7 +2605,7 @@ window.ARC_QUEST_CATALOG = {
       "slug": "boarding-the-frigate",
       "name": "На борту «Фрегата»",
       "nameEn": "Boarding the Frigate",
-      "trader": "Celeste",
+      "trader": "Shani",
       "description": "Привычная тактика при встрече с этими «Фрегатами» бесполезна. От них не убежать. Не спрятаться. Отсидеться тоже нельзя. Нужно взять себя в руки и действовать, причем без промедления.",
       "maps": [],
       "xp": 10000,
@@ -4566,11 +4566,11 @@ window.ARC_QUEST_CATALOG = {
           "quantity": 1
         },
         {
-          "id": "anvil_splitter",
+          "id": "extended_barrel_iii",
           "quantity": 1
         },
         {
-          "id": "extended_barrel_iii",
+          "id": "silencer_ii",
           "quantity": 1
         },
         {
@@ -5576,7 +5576,14 @@ window.ARC_QUEST_CATALOG = {
       "nameEn": "Picking Up The Pieces",
       "trader": "Shani",
       "description": "Буря утихла, но она успела здорово потрепать наше оснащение. Если хочешь остаться с нами, придется помочь с ремонтом.",
-      "maps": [],
+      "maps": [
+        "dam-battleground",
+        "the-spaceport",
+        "buried-city",
+        "blue-gate",
+        "stella-montis",
+        "riven-tides"
+      ],
       "xp": 1000,
       "imageUrl": "https://cdn.arctracker.io/quests/picking_up_the_pieces.png",
       "objectives": [
@@ -6863,7 +6870,7 @@ window.ARC_QUEST_CATALOG = {
       "imageUrl": "https://cdn.arctracker.io/quests/snap_and_salvage.png",
       "objectives": [
         {
-          "text": "Сфотографируйте самоходного робота в песочнице.",
+          "text": "Осмотрите самоходного робота в песочнице",
           "amount": null,
           "optional": false
         },
@@ -7678,7 +7685,7 @@ window.ARC_QUEST_CATALOG = {
           "optional": false
         },
         {
-          "text": "Сфотографируйте грузовик с бочками.",
+          "text": "Поделитесь геолокацией грузовика с бочками",
           "amount": null,
           "optional": false
         },

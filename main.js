@@ -411,6 +411,11 @@ async function fetchJson(target, headers = {}) {
 }
 
 async function openTrustedExternal(target) {
+  if(target && typeof target==='object' && typeof target.catalogUrl==='string'){
+    const url=target.catalogUrl;
+    if(!/^https:\/\/arctracker\.io(?:\/ru\/(?:items|maps|arc|quests|hideout|skill-tree|projects|map-events|traders|research|outposts)(?:\/[\w-]+)?)?\/?$/.test(url))throw new Error('Untrusted catalog link');
+    await shell.openExternal(url);return true;
+  }
   const allowed = {
     steamApiKey: 'https://steamcommunity.com/dev/apikey',
     arcSettings: 'https://arctracker.io/settings',

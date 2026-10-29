@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 const require = createRequire(import.meta.url);
 const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
 const root = new URL('../', import.meta.url);
-const allowed = new Set(['/index.html', '/renderer.js', '/quest-graph.js', '/styles.css', '/assets/data/quests.ru.js']);
+const allowed = new Set(['/index.html', '/renderer.js', '/quest-graph.js', '/styles.css', '/game-model.js', '/map-ui.js', '/map-ui.css', '/book-ui.js', '/book-ui.css', '/assets/data/game.ru.json', '/assets/data/quests.ru.js']);
 const server = createServer(async (req, res) => {
   const path = req.url === '/' ? '/index.html' : req.url;
   if (!allowed.has(path)) { res.writeHead(404).end(); return; }

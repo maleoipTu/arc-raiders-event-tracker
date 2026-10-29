@@ -13,3 +13,4 @@ mobile/www/
 .android-keys/
 *.keystore
 *.jks
+.cache-research/

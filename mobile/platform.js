@@ -88,7 +88,13 @@ window.arcApp = {
   fetchSchedule, getSettings: async () => ({ ...settings, packaged: true, notificationSupported: true }), saveSettings,
   scheduleNotifications: events => { notificationQueue = notificationQueue.catch(() => {}).then(() => syncNotifications(events)); return notificationQueue.catch(() => ({ scheduled: 0 })); },
   credentialStatus: async () => ({}),
-  openExternal: async target => { if (target !== 'questSource') throw new Error('Недоступная ссылка'); await Browser.open({ url: 'https://github.com/RaidTheory/arcraiders-data' }); },
+  openExternal: async target => {
+    if(target && typeof target==='object' && typeof target.catalogUrl==='string'){
+      if(!/^https:\/\/arctracker\.io(?:\/ru\/(?:items|maps|arc|quests|hideout|skill-tree|projects|map-events|traders|research|outposts)(?:\/[\w-]+)?)?\/?$/.test(target.catalogUrl))throw new Error('Недоступная ссылка');
+      await Browser.open({url:target.catalogUrl});return;
+    }
+    if (target !== 'questSource') throw new Error('Недоступная ссылка'); await Browser.open({ url: 'https://github.com/RaidTheory/arcraiders-data' });
+  },
   onAppRefresh: callback => { refreshCallback = callback; },
   onUpdateStatus: callback => { updateCallback = state => { callback(state); mobileUpdateText(state); }; },
   updateStatus: async () => updateState, checkUpdates,
@@ -135,6 +141,8 @@ intro.innerHTML = '<div class="eyebrow">ТРЕКЕР В КАРМАНЕ</div><h2>
 help.prepend(intro);
 App.addListener('appStateChange', state => { if (state.isActive) refreshCallback?.(); });
 App.addListener('backButton', async () => {
+  if(document.querySelector('#moreMenu')?.hidden===false){document.querySelector('#closeMore').click();return;}
+  const back=document.querySelector('#wikiView:not([hidden]) [data-book-back]');if(back){back.click();return;}
   const current = document.querySelector('.nav-item.active');
   if (current?.dataset.view !== 'all') document.querySelector('[data-view="all"]').click();
   else await App.minimizeApp();

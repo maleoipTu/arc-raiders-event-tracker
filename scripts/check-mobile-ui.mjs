@@ -43,7 +43,7 @@ try {
           if (method === 'checkPermissions' || method === 'requestPermissions') return { display: 'granted' };
           if (method === 'schedule') { window.testNotifications = options.notifications; window.testNotificationSchedules++; }
           if (method === 'request' || method === 'get') {
-            if (options.url.includes('github')) return { status: 200, data: window.testAndroidUpdate ? [{ tag_name: 'v9.0.0', assets: [{ name: 'Windows.exe' }] }, { tag_name: 'android-v0.6.0', assets: [{ name: 'ARC-Android-0.6.0.apk', browser_download_url: 'https://github.com/maleoipTu/arc-raiders-event-tracker/releases/download/android-v0.6.0/ARC-Android-0.6.0.apk' }] }] : [] };
+            if (options.url.includes('github')) return { status: 200, data: window.testAndroidUpdate ? [{ tag_name: 'v9.0.0', assets: [{ name: 'Windows.exe' }] }, { tag_name: 'android-v0.7.0', assets: [{ name: 'ARC-Android-0.7.0.apk', browser_download_url: 'https://github.com/maleoipTu/arc-raiders-event-tracker/releases/download/android-v0.7.0/ARC-Android-0.7.0.apk' }] }] : [] };
             return { status: 200, data: JSON.stringify({ liveEntries: entries }).replaceAll('"', '\\"') };
           }
           return {};
@@ -53,7 +53,8 @@ try {
     await page.route('https://cdn.arctracker.io/**', route => route.abort());
     await page.goto(`http://127.0.0.1:${server.address().port}`);
     await page.waitForFunction(() => document.querySelector('#syncTitle')?.textContent.includes('EMBARK'));
-    assert.equal(await page.locator('.nav-item').count(), 5);
+    assert.equal(await page.locator('.nav-item:visible').count(), 4);
+    assert.equal(await page.locator('#navMore:visible').count(), 1);
     assert.equal(await page.locator('[data-view="player"]').count(), 0);
     assert.equal(await page.locator('#steamApiKey, #arcAppKey, #arcUserKey, #playerView').count(), 0);
     const overflow = async () => page.evaluate(() => ({ width: innerWidth, scroll: document.documentElement.scrollWidth, offenders: [...document.querySelectorAll('body *')].filter(el => el.getBoundingClientRect().right > innerWidth + 2 && el.getBoundingClientRect().width > 0).map(el => el.className).slice(0, 10) }));
@@ -86,7 +87,8 @@ try {
     if (width === 412) await page.screenshot({ path: fileURLToPath(new URL('../dist/android-preview/quests.png', import.meta.url)), fullPage: true });
     await page.reload();
     assert.equal(await page.evaluate(() => localStorage.getItem('arc-quest-progress-v1')), saved);
-    await page.locator('[data-view="help"]').click();
+    await page.locator('#navMore').click();
+    await page.locator('[data-more-view="help"]').click();
     await page.locator('#eventNotifications').check();
     await page.locator('#saveSystemSettings').click();
     await page.waitForFunction(() => window.testNotifications.length > 0);
@@ -95,7 +97,7 @@ try {
     assert.equal(await page.evaluate(() => window.testNotificationSchedules), reminderCalls);
     await page.evaluate(() => { window.testAndroidUpdate = true; });
     await page.locator('#checkUpdates').click();
-    await page.waitForFunction(() => document.querySelector('#updateStatus').textContent.includes('0.6.0'));
+    await page.waitForFunction(() => document.querySelector('#updateStatus').textContent.includes('0.7.0'));
     assert.equal(await page.locator('#installUpdate').isVisible(), true);
     size = await overflow(); assert.ok(size.scroll <= width + 1, JSON.stringify(size));
     assert.equal(await page.locator('#steamLogin:visible').count(), 0);

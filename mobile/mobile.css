@@ -14,6 +14,7 @@ body.android-app { display: block; padding: var(--safe-area-inset-top,env(safe-a
 .android-app .nav-item span { font-size: 22px; width: auto; line-height: 1; }
 .android-app .nav-item.active { box-shadow: none; color: var(--acid); background: #d8f21012; }
 .android-app .nav-item.active span { color: var(--acid); }
+.android-app .nav{padding-right:20%;grid-template-columns:repeat(4,minmax(0,1fr))}.android-app .nav-item[data-view="favorite"],.android-app .nav-item[data-view="history"],.android-app .nav-item[data-view="wiki"],.android-app .nav-item[data-view="help"]{display:none}.android-app .nav-more{display:flex;position:fixed;z-index:21;bottom:var(--safe-area-inset-bottom,env(safe-area-inset-bottom));right:0;width:20%;height:68px;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:6px 0;border:0;background:#111411;color:var(--muted);font-size:10px;cursor:pointer}.android-app .nav-more span{font-size:22px;line-height:1}.android-app .nav-more.active{color:var(--acid);background:#1e2516}.android-app .more-menu{bottom:calc(84px + var(--safe-area-inset-bottom,env(safe-area-inset-bottom)))}
 .android-app .signal-card { padding: 10px 12px; border-radius: 8px; }
 .android-app .signal-card p { margin-bottom: 0; font-size: 11px; }
 .android-app .signal-head { font-size: 9px; }
